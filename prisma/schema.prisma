@@ -1,0 +1,149 @@
+
+generator client {
+  provider = "prisma-client-js"
+   output          = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL") 
+}
+
+
+
+// ------Роли------------
+enum Role {
+  ADMIN
+  MANAGER
+  EXECUTOR
+  CLIENT
+}
+
+
+// ---------- Статусы задач ----------
+enum TypeProjectStatus {
+  NEW
+  IN_PROGRESS
+  REVISION
+  REVIEW
+  DONE
+}
+
+// ---------- Пользователь ----------
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  avatar    String   @default("/images/avatar-default.png")
+  role      Role     @default(CLIENT)
+  isEmailConfirmed Boolean @default(false)
+  isBlocked Boolean @default(false)   // 🔒 если true — пользователь заблокирован
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Связи
+  boardsAsManager Board[] @relation("ManagerBoards")
+  boardsAsClient  Board[] @relation("ClientBoards")
+  tasksAssigned   Task[]  @relation("ExecutorTasks")
+  comments        Comment[]
+  refreshToken    RefreshToken?
+  notifications Notification[]
+}
+
+// ---------- Доска (Board) ----------
+model Board {
+  id          String   @id @default(cuid())
+  name        String
+  clientEmail String   // email клиента
+  clientId    String?  // ссылка на клиента (может быть NULL до регистрации)
+  managerId   String
+  isArchived  Boolean  @default(false)  // 📦 архивирование (вместо удаления)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Связи
+  manager     User     @relation("ManagerBoards", fields: [managerId], references: [id])
+  client      User?    @relation("ClientBoards", fields: [clientId], references: [id])
+  tasks       Task[]
+  comments    Comment[]
+}
+
+// ---------- Задача (Task) ----------
+model Task {
+  id           String           @id @default(cuid())
+  title        String
+  description  String?
+  status       TypeProjectStatus @default(NEW)
+  order        Int?
+  boardId      String
+  assignedToId String?           // исполнитель
+  deadline     DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Связи
+  board        Board   @relation(fields: [boardId], references: [id])
+  assignedTo   User?   @relation("ExecutorTasks", fields: [assignedToId], references: [id])
+  comments     Comment[]
+  notifications Notification[]
+
+  // 🔹 Уникальность order в пределах доски
+  @@unique([boardId, order])
+}
+
+
+// ---------- Комментарий ----------
+model Comment {
+  id        String   @id @default(cuid())
+  text      String
+  authorId  String
+  boardId   String
+  taskId    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Связи
+  author    User @relation(fields: [authorId], references: [id])
+  board     Board @relation(fields: [boardId], references: [id])
+  task      Task? @relation(fields: [taskId], references: [id])
+}
+
+// ---------- Refresh Token ----------
+model RefreshToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+} 
+
+
+
+enum NotificationType {
+  NEW_COMMENT       // новый комментарий
+  STATUS_CHANGED    // изменён статус задачи
+  ASSIGNED          // назначен пользователь
+  NEW_TASK          // создана новая задача
+  SYSTEM            // системное уведомление
+}
+
+model Notification {
+  id         String           @id @default(cuid())      // уникальный идентификатор
+  userId     String                                  // кому уведомление
+  boardId    String?                                 // доска, если нужно фокусироваться
+  taskId     String?                                 // задача, если уведомление к ней
+  type       NotificationType                         // тип уведомления
+  message    String                                  // текст для пользователя
+  meta       Json?                                   // доп. данные (например commentId, authorName)
+  isRead     Boolean          @default(false)       // прочитано/непрочитано
+  createdAt  DateTime         @default(now())       // дата создания
+
+  user   User   @relation(fields: [userId], references: [id])  // связь с пользователем
+  task   Task?  @relation(fields: [taskId], references: [id])  // связь с задачей
+
+  @@index([userId, isRead])  // ускоряет выборку непрочитанных уведомлений
+  @@index([taskId])          // ускоряет поиск уведомлений по задаче
+}
