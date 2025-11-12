@@ -9,7 +9,7 @@ CRM для управления досками, задачами и уведом
 Скопируйте и выполните команды в терминале:
 
 ```bash
-git clone https://github.com/ТВОЙ_АККАУНТ/HeroComputerCRM.git
+git clone https://github.com/Tudovchanin/HeroComputerCRM.git
 cd HeroComputerCRM
 npm install
 cp -n .env.example .env
