@@ -35,6 +35,7 @@ model User {
   name      String
   email     String   @unique
   password  String
+  
   avatar    String   @default("/images/avatar-default.png")
   role      Role     @default(CLIENT)
   isEmailConfirmed Boolean @default(false)
@@ -57,14 +58,14 @@ model Board {
   name        String
   clientEmail String   // email клиента
   clientId    String?  // ссылка на клиента (может быть NULL до регистрации)
-  managerId   String
+  managerId   String?
   isArchived  Boolean  @default(false)  // 📦 архивирование (вместо удаления)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   // Связи
-  manager     User     @relation("ManagerBoards", fields: [managerId], references: [id])
-  client      User?    @relation("ClientBoards", fields: [clientId], references: [id])
+  manager     User?     @relation("ManagerBoards", fields: [managerId], references: [id], onDelete: SetNull)
+  client      User?    @relation("ClientBoards", fields: [clientId], references: [id], onDelete: SetNull)
   tasks       Task[]
   comments    Comment[]
 }
@@ -84,7 +85,7 @@ model Task {
 
   // Связи
   board        Board   @relation(fields: [boardId], references: [id])
-  assignedTo   User?   @relation("ExecutorTasks", fields: [assignedToId], references: [id])
+  assignedTo   User?   @relation("ExecutorTasks", fields: [assignedToId], references: [id], onDelete: SetNull)
   comments     Comment[]
   notifications Notification[]
 
@@ -104,9 +105,9 @@ model Comment {
   updatedAt DateTime @updatedAt
 
   // Связи
-  author    User @relation(fields: [authorId], references: [id])
-  board     Board @relation(fields: [boardId], references: [id])
-  task      Task? @relation(fields: [taskId], references: [id])
+  author    User @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  board     Board @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  task      Task? @relation(fields: [taskId], references: [id], onDelete: Cascade)
 }
 
 // ---------- Refresh Token ----------
@@ -141,8 +142,8 @@ model Notification {
   isRead     Boolean          @default(false)       // прочитано/непрочитано
   createdAt  DateTime         @default(now())       // дата создания
 
-  user   User   @relation(fields: [userId], references: [id])  // связь с пользователем
-  task   Task?  @relation(fields: [taskId], references: [id])  // связь с задачей
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)  // связь с пользователем
+  task   Task?  @relation(fields: [taskId], references: [id], onDelete: SetNull)  // связь с задачей
 
   @@index([userId, isRead])  // ускоряет выборку непрочитанных уведомлений
   @@index([taskId])          // ускоряет поиск уведомлений по задаче

@@ -1,0 +1,21 @@
+
+import type { Board, User, Comment, Notification } from './index';
+import type { TypeProjectStatus } from './enums';
+
+export type Task = {
+  id: string;
+  title: string;
+  description?: string | null;
+  status: TypeProjectStatus;
+  order?: number | null;
+  boardId: string;
+  assignedToId?: string | null;
+  deadline?: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+
+  board?: Board;
+  assignedTo?: User | null;
+  comments?: Comment[];
+  notifications?: Notification[];
+};
