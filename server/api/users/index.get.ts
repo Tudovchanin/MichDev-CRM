@@ -15,16 +15,9 @@ export default defineEventHandler (async(e)=> {
 
 
   try {
-    const accessToken = getAccessToken(e);
-    const payload= verifyAccessToken(accessToken);
-
-    console.log(payload, 'payload');
-    
-
-
+  
     const users = await userService.getAllUsers();
 
-    console.log(users);
     
     return {
       users
