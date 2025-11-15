@@ -20,9 +20,16 @@ class UserService {
     const { name, email, password } = data;
     
     const userExist = await this.userRepository.findByEmail(email);
-    if (userExist) {
-         throw createError({ statusCode: 409, message: "Пользователь с таким email уже существует" });
+    
+  if (userExist) {
+    // Если пользователь есть и не подтвердил email более 48 часов, можно его удалить и сделать новую запись
+    const emailPending = !userExist.isEmailConfirmed && userExist.createdAt.getTime() + 48*60*60*1000 < Date.now();
+    if (!emailPending) {
+      throw createError({ statusCode: 409, message: "Пользователь с таким email уже существует" });
+    } else {
+      await this.userRepository.deleteUserById(userExist.id);
     }
+  }
 
 
     const hashedPassword = await argon2.hash(password);

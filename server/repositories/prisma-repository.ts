@@ -17,7 +17,7 @@ export const prismaUserRepository: UserRepository = {
   async findActiveById(id:string) {
     const userIsActive =  await prisma.user.findUnique({
       where: { id: id },
-      select: { isActive: true } // ← Получаем только поле isActive
+      select: { isBlocked: true } // ← Получаем только поле isActive
     });
 
     return userIsActive
