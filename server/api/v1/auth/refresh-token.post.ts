@@ -4,6 +4,8 @@ import RefreshTokenService from "~/server/services/RefreshTokenService";
 import { prismaUserRepository, prismaRefreshTokenRepository } from "~/server/repositories/prisma-repository";
 import { createAccessToken } from "#imports";
 
+import type { UserBase } from "~/types/shared";
+
 const userService = new UserService(prismaUserRepository)
 const refreshTokenService = new RefreshTokenService(prismaRefreshTokenRepository);
 
@@ -16,6 +18,7 @@ export default defineEventHandler(async (e) => {
   if (!refreshToken) {
     throw createError({ statusCode: 401, message: 'Отсутствует refresh token' });
   }
+  
   const payload = verifyRefreshToken(refreshToken);
 
   if (!payload || typeof payload === 'string' || !payload.sub) {
@@ -25,14 +28,14 @@ export default defineEventHandler(async (e) => {
 
   try {
 
-    const user = await userService.getUserById(payload.sub);
+    const currentUser:UserBase = await userService.findByIdBasic(payload.sub);
 
-    if (!user) {
+    if (!currentUser) {
       clearAuthCookie(e);
       throw createError({ statusCode: 404, message: 'Пользователь не найден' })
     }
 
-    if (user.isBlocked) {
+    if (currentUser.isBlocked) {
       clearAuthCookie(e);
       throw createError({ statusCode: 401, message: 'Пользователь заблокирован' })
     }
@@ -48,10 +51,13 @@ export default defineEventHandler(async (e) => {
       throw createError({ statusCode: 401, message: 'Невалидный токен' })
     }
 
-    const newAccessToken = createAccessToken({ userId: user.id, role: user.role });
+    const tokenAccess = createAccessToken({ userId: currentUser.id, role: currentUser.role });
+
 
     return {
-      newAccessToken
+      user:currentUser,
+      tokenAccess,
+      tokenExpiresIn: 15 * 60 * 1000,
     }
 
 

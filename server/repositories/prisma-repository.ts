@@ -1,52 +1,420 @@
-
 import prisma from "~/lib/prisma";
 
+import type { CreateUserData, UserRepository, UpdateUserData, UserSearchConditions } from "~/types/backend/userRepo";
+import type {  UserResponseCounts, UserBase, UserBaseMinimal } from "~/types/shared";
+import type { UserWithPassword } from "~/types/backend/userRepo";
 
-import type { CreateUserData, UserRepository } from "~/types/backend/userRepo";
+import type { BoardBase, UpdateBoardData, CreateBoardData } from "~/types/shared";
+import type { BoardRepository } from "~/types/backend/boardRepo";
+
 import type { RefreshTokenRepository } from "~/types/backend/tokenRepo";
+
+import type { TaskRepository } from "~/types/backend/taskRepo";
+import type { TaskBase } from "~/types/shared";
+
+
+
 
 
 export const prismaUserRepository: UserRepository = {
-  async findById(id: string) {
-    return prisma.user.findUnique({ where: { id } });
-  },
-  async findByEmail(email: string) {
-    return prisma.user.findUnique({ where: { email } });
-  },
 
-  async findActiveById(id:string) {
-    const userIsActive =  await prisma.user.findUnique({
-      where: { id: id },
-      select: { isBlocked: true } // ← Получаем только поле isActive
-    });
-
-    return userIsActive
-  },
- 
-  async findAll() {
-    return prisma.user.findMany({
+  async findByIdWithCounts(id: string): Promise<UserResponseCounts | null> {
+    const user = await prisma.user.findUnique({
+      where: { id },
       select: {
         id: true,
         name: true,
         email: true,
+        avatar: true,
         role: true,
+        isEmailConfirmed: true,
+        isBlocked: true,
+        createdAt: true,
+        updatedAt: true,
+        _count: {
+          select: {
+            tasksAssigned: true,
+            boardsAsManager: true,
+            boardsAsClient: true,
+            comments: true,
+            notifications: true,
+          },
+        },
+      },
+    });
+
+    if (!user) return null;
+
+    return {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      avatar: user.avatar,
+      role: user.role,
+      isEmailConfirmed: user.isEmailConfirmed,
+      isBlocked: user.isBlocked,
+      createdAt: user.createdAt,
+      updatedAt:user.updatedAt,
+      tasksAssignedCount: user._count.tasksAssigned,
+      boardsAsManagerCount: user._count.boardsAsManager,
+      boardsAsClientCount: user._count.boardsAsClient,
+      commentsCount: user._count.comments,
+      notificationsCount: user._count.notifications,
+    };
+  },
+
+  async findByIdBasic(id: string): Promise<UserBase | null> {
+    return prisma.user.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        avatar: true,
+        role: true,
+        isEmailConfirmed: true,
+        isBlocked: true,
+        createdAt: true,
+        updatedAt: true,
       },
     });
   },
   
-  async create(userData: CreateUserData) {
-    return prisma.user.create({ data: userData });
+
+  async findUsers(roles?: string[]): Promise<UserResponseCounts[]> {
+    const where: any = {};
+    if (roles?.length) {
+      where.role = { in: roles };
+    }
+
+    const users = await prisma.user.findMany({
+      where,
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        avatar: true,
+        role: true,
+        isEmailConfirmed: true,
+        isBlocked: true,
+        createdAt: true,
+        updatedAt:true,
+        _count: {
+          select: {
+            tasksAssigned: true,
+            boardsAsManager: true,
+            boardsAsClient: true,
+            comments: true,
+            notifications: true,
+          },
+        },
+      },
+    });
+
+    return users.map(u => ({
+      id: u.id,
+      name: u.name,
+      email: u.email,
+      avatar: u.avatar,
+      role: u.role,
+      isEmailConfirmed: u.isEmailConfirmed,
+      isBlocked: u.isBlocked,
+      createdAt: u.createdAt,
+      updatedAt:u.updatedAt,
+      tasksAssignedCount: u._count.tasksAssigned,
+      boardsAsManagerCount: u._count.boardsAsManager,
+      boardsAsClientCount: u._count.boardsAsClient,
+      commentsCount: u._count.comments,
+      notificationsCount: u._count.notifications,
+    }));
   },
 
-  async update(id: string, data: Partial<any>) {
-    return prisma.user.update({ where: { id }, data });
+  async findByEmailWithPassword(email: string): Promise<UserWithPassword | null> {
+
+    const user = await prisma.user.findUnique({
+      where: {
+        email
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        password: true,
+        avatar: true,
+        role: true,
+        isEmailConfirmed: true,
+        isBlocked: true,
+        createdAt: true,
+        updatedAt:true,
+        _count: {
+          select: {
+            tasksAssigned: true,
+            boardsAsManager: true,
+            boardsAsClient: true,
+            comments: true,
+            notifications: true,
+          },
+        },
+      },
+    });
+
+    if (!user) return null;
+
+    const userWithPassword: UserWithPassword = {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      password: user.password,
+      avatar: user.avatar,
+      role: user.role,
+      isEmailConfirmed: user.isEmailConfirmed,
+      isBlocked: user.isBlocked,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+
+      tasksAssignedCount: user._count.tasksAssigned,
+      boardsAsManagerCount: user._count.boardsAsManager,
+      boardsAsClientCount: user._count.boardsAsClient,
+      commentsCount: user._count.comments,
+      notificationsCount: user._count.notifications,
+    };
+
+    return userWithPassword;
+
   },
 
-  async deleteUserById(id: string) {
-    return prisma.user.delete({ where: { id } });
+  async create(userData: CreateUserData): Promise<UserBase> {
+    const user = await prisma.user.create({
+      data: userData,
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        avatar: true,
+        role: true,
+        isEmailConfirmed: true,
+        isBlocked: true,
+        createdAt: true,
+        updatedAt:true
+      },
+    });
+
+    return user;
+  },
+
+  async update(id: string, data: UpdateUserData): Promise<UserBase> {
+    try {
+      const user = await prisma.user.update({
+        where: { id },
+        data,
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          avatar: true,
+          role: true,
+          isEmailConfirmed: true,
+          isBlocked: true,
+          createdAt: true,
+          updatedAt:true
+        },
+      });
+      return user;
+    } catch (err: any) {
+      if (err.code === 'P2025') {
+        throw createError({ statusCode: 404, message: 'Пользователь не найден' });
+      }
+      throw err;
+    }
+  },
+
+  async deleteById(id: string): Promise<UserBaseMinimal> {
+    try {
+      const user = await prisma.user.delete({
+        where: { id },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+        },
+      });
+      return user;
+
+    } catch (err: any) {
+      if (err.code === 'P2025') {
+        throw createError({ statusCode: 404, message: 'Пользователь не найден' });
+      }
+      throw err;
+    }
+  },
+
+  async findUsersByCondition(where: UserSearchConditions ): Promise<UserBase[]> {
+    return prisma.user.findMany({
+      where,
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        avatar: true,
+        role: true,
+        isEmailConfirmed: true,
+        isBlocked: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
   }
+  
+
 };
 
+export const prismaBoardRepository: BoardRepository = {
+
+  async getBoardsForManagerOrClient(userId: string): Promise<BoardBase[]> {
+    return prisma.board.findMany({
+      where: {
+        OR: [
+          { managerId: userId },
+          { clientId: userId }
+        ]
+      },
+      select: {
+        id: true,
+        name: true,
+        clientEmail: true,
+        clientId: true,
+        managerId: true,
+        isArchived: true,
+        createdAt: true,
+        updatedAt: true,
+      }
+    });
+  },
+
+  async findById(boardId: string): Promise<BoardBase | null> {
+    return prisma.board.findUnique({
+      where: { id: boardId },
+      select: {
+        id: true,
+        name: true,
+        clientEmail: true,
+        clientId: true,
+        managerId: true,
+        isArchived: true,
+        createdAt: true,
+        updatedAt: true,
+      }
+    });
+  },
+
+  async create(data: CreateBoardData): Promise<BoardBase> {
+    return prisma.board.create({
+      data,
+      select: {
+        id: true,
+        name: true,
+        clientEmail: true,
+        clientId: true,
+        managerId: true,
+        isArchived: true,
+        createdAt: true,
+        updatedAt: true,
+      }
+    });
+  },
+
+  async update(boardId: string, data: UpdateBoardData): Promise<BoardBase> {
+
+    try {
+
+      const board = await prisma.board.update({
+        where: { id: boardId },
+        data,
+        select: {
+          id: true,
+          name: true,
+          clientEmail: true,
+          clientId: true,
+          managerId: true,
+          isArchived: true,
+          createdAt: true,
+          updatedAt: true,
+        }
+      });
+
+      return board;
+      
+    } catch (err:any) {
+
+      if (err.code === 'P2025') {
+        throw createError({ statusCode: 404, message: 'Пользователь не найден' });
+      }
+      throw err;
+      
+    }
+
+    
+  },
+
+  async archive(boardId: string): Promise<BoardBase> {
+  
+    try {
+
+      const board  = await prisma.board.update({
+        where: { id: boardId },
+        data: { isArchived: true },
+        select: {
+          id: true,
+          name: true,
+          clientEmail: true,
+          clientId: true,
+          managerId: true,
+          isArchived: true,
+          createdAt: true,
+          updatedAt: true,
+        }
+      });
+  
+      return board;
+
+      
+    } catch (err:any) {
+      if (err.code === 'P2025') {
+        throw createError({ statusCode: 404, message: 'Пользователь не найден' });
+      }
+      throw err;
+    }
+  },
+  async getBoardsForExecutor(userId: string): Promise<BoardBase[]> {
+    // Сначала получаем все задачи исполнителя
+    const tasks = await prisma.task.findMany({
+      where: { assignedToId: userId },
+      select: { boardId: true },
+    });
+  
+    // собираем уникальные id досок
+    const boardIds = [...new Set(tasks.map(t => t.boardId))];
+    if (boardIds.length === 0) return [];
+  
+    // Получаем доски по этим id
+    const boards = await prisma.board.findMany({
+      where: { id: { in: boardIds } },
+      select: {
+        id: true,
+        name: true,
+        clientEmail: true,
+        clientId: true,
+        managerId: true,
+        isArchived: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+  
+    return boards;
+  }
+  
+};
 
 export const prismaRefreshTokenRepository: RefreshTokenRepository = {
   async findByUserId(userId: string) {
@@ -72,5 +440,60 @@ export const prismaRefreshTokenRepository: RefreshTokenRepository = {
   async deleteToken(userId: string) {
     return prisma.refreshToken.delete({ where: { userId } });
   },
+};
 
+export const prismaTaskRepository: TaskRepository = {
+
+  async getAllTasks(): Promise<TaskBase[]> {
+    return prisma.task.findMany({
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        status: true,
+        order: true,
+        boardId: true,
+        assignedToId: true,
+        deadline: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+  },
+
+  async getTasksByUser(userId: string): Promise<TaskBase[]> {
+    return prisma.task.findMany({
+      where: { assignedToId: userId },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        status: true,
+        order: true,
+        boardId: true,
+        assignedToId: true,
+        deadline: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+  },
+
+  async getTasksByBoard(boardId: string): Promise<TaskBase[]> {
+    return prisma.task.findMany({
+      where: { boardId },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        status: true,
+        order: true,
+        boardId: true,
+        assignedToId: true,
+        deadline: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+  },
 };

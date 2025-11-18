@@ -19,3 +19,21 @@ export type Task = {
   comments?: Comment[];
   notifications?: Notification[];
 };
+
+
+
+
+
+
+export type TaskBase = {
+  id: string;
+  title: string;
+  description: string | null;
+  status: TypeProjectStatus;
+  order: number | null;
+  boardId: string;
+  assignedToId: string | null;
+  deadline: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+};

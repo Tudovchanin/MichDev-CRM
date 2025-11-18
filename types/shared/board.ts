@@ -15,3 +15,31 @@ export type Board = {
   tasks?: Task[];
   comments?: Comment[];
 };
+
+
+
+export type BoardBase = {
+  id: string;
+  name: string;
+  clientEmail: string;
+  clientId: string | null;
+  managerId: string | null;
+  isArchived: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+export type CreateBoardData = {
+  name: string;
+  clientEmail: string;
+  clientId?: string | null;
+  managerId?: string | null;
+};
+
+export type UpdateBoardData = Partial<{
+  name: string;
+  clientEmail: string;
+  clientId: string | null;
+  managerId: string | null;
+  isArchived: boolean;
+}>;

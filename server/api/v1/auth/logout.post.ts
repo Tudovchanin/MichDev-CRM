@@ -23,7 +23,7 @@ export default defineEventHandler(async (e) => {
       }
     }
 
- 
+    // удаляем refresh token из cookie
     clearAuthCookie(e);
 
     

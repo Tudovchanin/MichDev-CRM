@@ -21,3 +21,36 @@ export type User = {
   refreshToken?: RefreshToken;
   notifications?: Notification[];
 };
+
+
+export type UserBase = {
+  id: string;
+  name: string;
+  email: string;
+  avatar: string | null;
+  role: Role;
+  isEmailConfirmed: boolean;
+  isBlocked: boolean;
+  createdAt: Date;
+  updatedAt: Date; 
+};
+
+export type UserBaseMinimal = Pick<UserBase, 'id' | 'name' | 'email'>;
+
+
+
+export type UserResponseCounts = UserBase & {
+  tasksAssignedCount: number;
+  boardsAsManagerCount: number;
+  boardsAsClientCount: number;
+  commentsCount: number;
+  notificationsCount: number;
+};
+
+export type UserResponseFull = UserBase & {
+  tasksAssigned: Task[];
+  boardsAsManager: Board[];
+  boardsAsClient: Board[];
+  comments: Comment[];
+  notifications: Notification[];
+};

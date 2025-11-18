@@ -28,3 +28,4 @@ export default defineEventHandler(async (e) => {
     return sendRedirect(e, CLIENT_ERROR_PAGE);
   }
 });
+

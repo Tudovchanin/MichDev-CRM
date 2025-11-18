@@ -1,19 +1,17 @@
 import UserService from "~/server/services/UserService";
 import RefreshTokenService from "~/server/services/RefreshTokenService";
-
 import {
   prismaUserRepository,
   prismaRefreshTokenRepository,
 } from "~/server/repositories/prisma-repository";
+
 import { createAccessToken, getTokenExpiryDate } from "~/server/utils/jwt";
-import { validateBody } from "~/server/utils/validateBody";
+import { validateBody } from "~/server/utils/validate";
 import { setAuthCookie } from "~/server/utils/cookies";
-
-
-
-
 import { loginSchema } from "~/server/validations/auth";
-import type { AuthenticateUserData } from "~/types/backend/userRepo";
+
+import type { AuthenticateUserData, UserWithPassword } from "~/types/backend/userRepo";
+import type { UserBase } from "~/types/shared";
 
 const userService = new UserService(prismaUserRepository);
 const refreshTokenService = new RefreshTokenService(
@@ -21,12 +19,11 @@ const refreshTokenService = new RefreshTokenService(
 );
 
 export default defineEventHandler(async (e) => {
-  await validateBody(loginSchema, e);
 
-  const body: AuthenticateUserData = e.context.validatedBody;
+  const body: AuthenticateUserData = await validateBody(loginSchema, e);
 
   try {
-    const user = await userService.loginUser(body);
+    const user: UserWithPassword = await userService.loginUser(body);
 
     const tokenAccess = createAccessToken({ userId: user.id, role: user.role });
 
@@ -38,33 +35,16 @@ export default defineEventHandler(async (e) => {
 
     setAuthCookie(e, tokenRefresh, validityPeriodMs);
 
+    const userNoPassword:UserBase = userService.mapUserBase(user); 
+
+
+
     return {
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        avatar: user.avatar,
-        role: user.role,
-        isEmailConfirmed: user.isEmailConfirmed,
-      },
+      user:userNoPassword,
       tokenAccess,
-      expiresIn: 15 * 60 * 1000,
+      tokenExpiresIn: 15 * 60 * 1000,
     };
   } catch (error) {
-    if (
-      error &&
-      typeof error === "object" &&
-      "statusCode" in error &&
-      "message" in error
-    ) {
-      throw error;
-    }
-
-    // Для всех остальных случаев
-    throw createError({
-      statusCode: 500,
-      message:
-        error instanceof Error ? error.message : "Внутренняя ошибка сервера",
-    });
+    throw error;
   }
 });
