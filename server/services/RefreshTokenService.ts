@@ -1,7 +1,6 @@
 
-
-
 import type { RefreshTokenRepository } from "~/types/backend/tokenRepo";
+
 
 class RefreshTokenService {
   constructor(private refreshTokenRepository: RefreshTokenRepository) {}

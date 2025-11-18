@@ -1,19 +1,13 @@
+
 import prisma from "~/lib/prisma";
-
 import type { CreateUserData, UserRepository, UpdateUserData, UserSearchConditions } from "~/types/backend/userRepo";
-import type {  UserResponseCounts, UserBase, UserBaseMinimal } from "~/types/shared";
+import type { UserResponseCounts, UserBase, UserBaseMinimal } from "~/types/shared";
 import type { UserWithPassword } from "~/types/backend/userRepo";
-
 import type { BoardBase, UpdateBoardData, CreateBoardData } from "~/types/shared";
 import type { BoardRepository } from "~/types/backend/boardRepo";
-
 import type { RefreshTokenRepository } from "~/types/backend/tokenRepo";
-
 import type { TaskRepository } from "~/types/backend/taskRepo";
 import type { TaskBase } from "~/types/shared";
-
-
-
 
 
 export const prismaUserRepository: UserRepository = {
@@ -54,7 +48,7 @@ export const prismaUserRepository: UserRepository = {
       isEmailConfirmed: user.isEmailConfirmed,
       isBlocked: user.isBlocked,
       createdAt: user.createdAt,
-      updatedAt:user.updatedAt,
+      updatedAt: user.updatedAt,
       tasksAssignedCount: user._count.tasksAssigned,
       boardsAsManagerCount: user._count.boardsAsManager,
       boardsAsClientCount: user._count.boardsAsClient,
@@ -79,7 +73,15 @@ export const prismaUserRepository: UserRepository = {
       },
     });
   },
-  
+
+  async getPasswordUserById(id: string): Promise<{ password: string } | null> {
+    return prisma.user.findUnique({
+      where: { id },
+      select: {
+        password: true
+      },
+    })
+  },
 
   async findUsers(roles?: string[]): Promise<UserResponseCounts[]> {
     const where: any = {};
@@ -98,7 +100,7 @@ export const prismaUserRepository: UserRepository = {
         isEmailConfirmed: true,
         isBlocked: true,
         createdAt: true,
-        updatedAt:true,
+        updatedAt: true,
         _count: {
           select: {
             tasksAssigned: true,
@@ -120,7 +122,7 @@ export const prismaUserRepository: UserRepository = {
       isEmailConfirmed: u.isEmailConfirmed,
       isBlocked: u.isBlocked,
       createdAt: u.createdAt,
-      updatedAt:u.updatedAt,
+      updatedAt: u.updatedAt,
       tasksAssignedCount: u._count.tasksAssigned,
       boardsAsManagerCount: u._count.boardsAsManager,
       boardsAsClientCount: u._count.boardsAsClient,
@@ -145,7 +147,7 @@ export const prismaUserRepository: UserRepository = {
         isEmailConfirmed: true,
         isBlocked: true,
         createdAt: true,
-        updatedAt:true,
+        updatedAt: true,
         _count: {
           select: {
             tasksAssigned: true,
@@ -195,7 +197,7 @@ export const prismaUserRepository: UserRepository = {
         isEmailConfirmed: true,
         isBlocked: true,
         createdAt: true,
-        updatedAt:true
+        updatedAt: true
       },
     });
 
@@ -216,7 +218,7 @@ export const prismaUserRepository: UserRepository = {
           isEmailConfirmed: true,
           isBlocked: true,
           createdAt: true,
-          updatedAt:true
+          updatedAt: true
         },
       });
       return user;
@@ -248,7 +250,7 @@ export const prismaUserRepository: UserRepository = {
     }
   },
 
-  async findUsersByCondition(where: UserSearchConditions ): Promise<UserBase[]> {
+  async findUsersByCondition(where: UserSearchConditions): Promise<UserBase[]> {
     return prisma.user.findMany({
       where,
       select: {
@@ -264,7 +266,6 @@ export const prismaUserRepository: UserRepository = {
       },
     });
   }
-  
 
 };
 
@@ -343,24 +344,24 @@ export const prismaBoardRepository: BoardRepository = {
       });
 
       return board;
-      
-    } catch (err:any) {
+
+    } catch (err: any) {
 
       if (err.code === 'P2025') {
         throw createError({ statusCode: 404, message: 'Пользователь не найден' });
       }
       throw err;
-      
+
     }
 
-    
+
   },
 
   async archive(boardId: string): Promise<BoardBase> {
-  
+
     try {
 
-      const board  = await prisma.board.update({
+      const board = await prisma.board.update({
         where: { id: boardId },
         data: { isArchived: true },
         select: {
@@ -374,11 +375,11 @@ export const prismaBoardRepository: BoardRepository = {
           updatedAt: true,
         }
       });
-  
+
       return board;
 
-      
-    } catch (err:any) {
+
+    } catch (err: any) {
       if (err.code === 'P2025') {
         throw createError({ statusCode: 404, message: 'Пользователь не найден' });
       }
@@ -391,11 +392,11 @@ export const prismaBoardRepository: BoardRepository = {
       where: { assignedToId: userId },
       select: { boardId: true },
     });
-  
+
     // собираем уникальные id досок
     const boardIds = [...new Set(tasks.map(t => t.boardId))];
     if (boardIds.length === 0) return [];
-  
+
     // Получаем доски по этим id
     const boards = await prisma.board.findMany({
       where: { id: { in: boardIds } },
@@ -410,10 +411,10 @@ export const prismaBoardRepository: BoardRepository = {
         updatedAt: true,
       },
     });
-  
+
     return boards;
   }
-  
+
 };
 
 export const prismaRefreshTokenRepository: RefreshTokenRepository = {

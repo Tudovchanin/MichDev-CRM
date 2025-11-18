@@ -1,9 +1,6 @@
 
-
-
 import type { H3Event } from 'h3';
 import type { UserBase, Role } from "~/types/shared";
-
 
 
 export function getAccessToken(e: H3Event): string {
@@ -25,8 +22,6 @@ export function getAccessToken(e: H3Event): string {
 
   return authorization.slice(7);
 }
-
-
 
 export function assertValidUser(user: UserBase) {
   if (!user) throw createError({ statusCode: 404, message: "Пользователь не найден" });

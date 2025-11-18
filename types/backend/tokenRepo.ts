@@ -1,4 +1,7 @@
+
 import type { RefreshToken } from "../shared";
+
+
 
 export type RefreshTokenRepository = {
   findByUserId(userId: string): Promise<RefreshToken | null>;

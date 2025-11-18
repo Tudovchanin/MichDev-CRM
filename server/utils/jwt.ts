@@ -1,7 +1,6 @@
+
 import jwt from 'jsonwebtoken';
 import type { JwtPayload } from 'jsonwebtoken';
-
-
 
 
 export function createAccessToken(payload: {userId:string, role:string}) {
@@ -14,7 +13,6 @@ export function createAccessToken(payload: {userId:string, role:string}) {
   );
 }
 
-
 export function createRefreshToken(payload: {userId:string}) {
   const config = useRuntimeConfig();
   const secret = config.jwtRefreshSecret;
@@ -24,8 +22,6 @@ export function createRefreshToken(payload: {userId:string}) {
     { expiresIn: '7d' }
   );
 }
-
-
 
 // Валидирует access token
 export function verifyAccessToken(token: string): JwtPayload | string {
@@ -39,17 +35,12 @@ export function verifyRefreshToken(token: string): JwtPayload | string {
   return jwt.verify(token, config.jwtRefreshSecret);
 }
 
-
-
 // Жизнь токена обновления
 export function getTokenExpiryDate(validityPeriodMs: number): Date {
   return new Date(Date.now() + validityPeriodMs);
 }
 
-
-
 // Токен для почты
-
 export function createActivateEmailToken(payload: {userId:string} ) {
   const config = useRuntimeConfig();
   return jwt.sign(

@@ -1,8 +1,9 @@
+
 import { z } from 'zod';
 import type { ZodType } from 'zod';
 import type { H3Event } from 'h3';
 
-
+// validateBody для валидации body
 export const validateBody = async (schema: ZodType<any>, e:H3Event) => {
 
   const bodyRaw = await readBody(e);
@@ -16,7 +17,7 @@ export const validateBody = async (schema: ZodType<any>, e:H3Event) => {
 
     throw createError({
       statusCode: 400,
-      statusMessage: "Неверные данные",
+      statusMessage: "Неверные данные в теле запроса",
       data: formattedError,
     });
   }
@@ -25,9 +26,9 @@ export const validateBody = async (schema: ZodType<any>, e:H3Event) => {
   return result.data;
 };
 
-
-// validateQuery — для GET
+// validateQuery — для GET query params
 export const validateQuery = (schema: ZodType<any>, e: H3Event) => {
+
   const query = getQuery(e);
   const result = schema.safeParse(query);
 
@@ -35,7 +36,7 @@ export const validateQuery = (schema: ZodType<any>, e: H3Event) => {
     const formattedError = z.treeifyError(result.error);
     throw createError({
       statusCode: 400,
-      statusMessage: "Неверные данные в query",
+      statusMessage: "Неверные данные в query params",
       data: formattedError,
     });
   }

@@ -1,14 +1,13 @@
 
 import argon2 from 'argon2';
-
 import { createActivateEmailToken, verifyActivateEmailToken } from '../utils/jwt';
-
-import type { CreateUserData, AuthenticateUserData, UserRepository, UserWithPassword } from "~/types/backend/userRepo";
+import type { CreateUserData, AuthenticateUserData, UserRepository, UserWithPassword, UpdateUserData } from "~/types/backend/userRepo";
 import type { UserBase, UserResponseCounts, UserBaseMinimal } from '~/types/shared';
-
 import type { IEmailService } from "./EmailService";
 import { Role } from '~/types/shared';
+
 const ACTIVATION_LINK = useRuntimeConfig().activationLink;
+
 
 class UserService {
 
@@ -21,7 +20,7 @@ class UserService {
 
     const { name, email, password } = data;
 
-    const userExist = await this.userRepository.findByEmail(email);
+    const userExist = await this.userRepository.findByEmailWithPassword(email);
 
     if (userExist) {
       // Если пользователь есть и не подтвердил email более 48 часов, можно его удалить и сделать новую запись
@@ -99,6 +98,11 @@ class UserService {
   async findUsers(roles?: string[]): Promise<UserResponseCounts[]> {
     const users = await this.userRepository.findUsers(roles);
     return users;
+  }
+
+  async updateProfile(id:string, data:UpdateUserData):Promise<UserBase>{
+    const updateUser = await this.userRepository.update(id, data);
+    return updateUser;
   }
 
   async blockUser(id: string): Promise<UserBase> {
@@ -181,13 +185,42 @@ class UserService {
     return users;
   }
 
+  async updatePassword(id:string, oldPassword:string ,newPassword:string ){
+
+
+    const passwordUser = await this.userRepository.getPasswordUserById(id);
+    if(!passwordUser) throw createError({
+      statusCode: 404,
+      message: "Ошибка запроса"
+    });
+
+    const passwordIsValid = await argon2.verify(passwordUser.password, oldPassword);
+    if (!passwordIsValid) {
+      throw createError({
+        statusCode: 401,
+        message: "Неверный пароль"
+      });
+    }
+
+    const isSamePassword = await argon2.verify(passwordUser.password, newPassword);
+  if (isSamePassword) {
+    throw createError({
+      statusCode: 400,
+      message: "Новый пароль не должен совпадать со старым"
+    });
+  }
+
+    const hashedNewPassword = await argon2.hash(newPassword);
+
+    await this.userRepository.update(id, { password:hashedNewPassword });
+  }
 
   mapUserBase(user: UserWithPassword | UserResponseCounts): UserBase {
     const { id, email, name, avatar, role, isEmailConfirmed, isBlocked, createdAt, updatedAt } = user;
     return { id, email, name, avatar, role, isEmailConfirmed, isBlocked, createdAt, updatedAt };
   }
 
-
 }
+
 
 export default UserService;

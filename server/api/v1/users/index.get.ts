@@ -4,7 +4,7 @@ import UserService from "~/server/services/UserService";
 import { prismaUserRepository } from "~/server/repositories/prisma-repository";
 import type { UserBase, UserResponseCounts } from "~/types/shared";
 
-import { assertRole, assertValidUser } from "~/server/utils/auth";
+import { assertValidUser } from "~/server/utils/auth";
 
 
 const userService = new UserService(prismaUserRepository);

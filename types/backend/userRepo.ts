@@ -7,6 +7,8 @@ export type UpdateUserData = Partial<Pick<User, 'name' | 'email' | 'password' | 
 
 
 export type UserRepository = {
+  
+  getPasswordUserById(id: string): Promise<{ password: string } | null>
   findUsers(roles?: string[]): Promise<UserResponseCounts[]>;
   findByIdBasic(id: string): Promise<UserBase | null>
   findByIdWithCounts(id: string): Promise<UserResponseCounts | null>;

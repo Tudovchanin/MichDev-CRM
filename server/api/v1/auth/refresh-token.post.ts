@@ -25,6 +25,7 @@ export default defineEventHandler(async (e) => {
     clearAuthCookie(e);
     throw createError({ statusCode: 401, message: 'Невалидный refresh token' });
   }
+  
 
   try {
 
@@ -39,6 +40,8 @@ export default defineEventHandler(async (e) => {
       clearAuthCookie(e);
       throw createError({ statusCode: 401, message: 'Пользователь заблокирован' })
     }
+
+
 
     const dbTokenRefresh = await refreshTokenService.getToken(payload.sub);
     if (!dbTokenRefresh) {

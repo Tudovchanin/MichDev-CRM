@@ -10,7 +10,7 @@ export const changeUserRoleSchema = z.object({
 });
 
 export const findClientQuerySchema = z.object({
-  email: z.string().pipe(z.email()).optional(),
-  name: z.string().min(1).optional(),
+  email: z.string().trim().pipe(z.email()).optional(),
+  name: z.string().trim().min(1).optional(),
   isBlocked: z.enum(["true", "false"]).optional(),
 });

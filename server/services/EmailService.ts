@@ -1,3 +1,4 @@
+
 import nodemailer from "nodemailer";
 
 
@@ -5,7 +6,9 @@ export interface IEmailService {
   sendActivateEmail(to: string, link: string): Promise<void>;
 }
 
+
 class EmailService implements IEmailService {
+  
   transporter: nodemailer.Transporter;
  
   constructor() {
@@ -39,5 +42,6 @@ class EmailService implements IEmailService {
   }
 
 }
+
 
 export default EmailService;

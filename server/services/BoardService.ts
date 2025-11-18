@@ -1,7 +1,5 @@
 
-
 import type { BoardRepository } from "~/types/backend/boardRepo";
-
 import type { BoardBase, UpdateBoardData, CreateBoardData } from "~/types/shared";
 
 
@@ -11,7 +9,6 @@ constructor(
   private boardRepository:BoardRepository
 ){}
 
-
 async getBoardById(boardId: string) {
   const board = await this.boardRepository.findById(boardId);
   if (!board) {
@@ -19,8 +16,6 @@ async getBoardById(boardId: string) {
   }
   return board;
 }
-
-
 
 async createBoard(data: CreateBoardData):Promise<BoardBase> {
   const board = await this.boardRepository.create(data);
@@ -32,11 +27,9 @@ async updateBoard(boardId: string, data: UpdateBoardData) {
 
 }
 
-
 async archiveBoard(boardId: string) {
 
 }
-
 
 async getBoardsForManagerOrClient(userId: string) {
 
