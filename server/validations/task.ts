@@ -13,3 +13,13 @@ export const createTaskSchema = z.object({
 export const updateTaskSchema = createTaskSchema.partial().extend({
   id: z.string(),
 });
+
+
+export const taskFiltersQuerySchema = z.object({
+  status: z
+    .string()
+    .pipe(z.enum(["NEW", "IN_PROGRESS", "REVISION", "REVIEW", "DONE"]))
+    .optional(),
+  assignedToId: z.string().optional(),
+  deadline: z.string().optional(), // передадим строкой
+});

@@ -15,7 +15,7 @@ export default defineEventHandler(async (e) => {
 
 
   try {
-    const currentUser = await userService.findByIdBasic(e.context.currentUserPayload.sub);
+    const currentUser = await userService.findByIdBasic(e.context.currentUserPayload.sub as string);
     // проверка текущего пользователя
     assertValidUser(currentUser);
     assertRole(currentUser, ['ADMIN', 'MANAGER']);

@@ -13,10 +13,7 @@ const userService = new UserService(prismaUserRepository);
 
 export default defineEventHandler(async(e)=> {
 
-
-
-  const currentId = e.context.currentUserPayload.sub;
-
+  const currentId:string = e.context.currentUserPayload.sub;
 
   try {
 

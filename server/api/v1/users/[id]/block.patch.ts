@@ -1,12 +1,9 @@
 
 import UserService from "~/server/services/UserService";
-
 import {
   prismaUserRepository,
 } from "~/server/repositories/prisma-repository";
-
 import { assertRole, assertValidUser } from "~/server/utils/auth";
-
 import type { UserBase } from "~/types/shared";
 
 
@@ -15,8 +12,10 @@ const userService = new UserService(prismaUserRepository);
 
 export default defineEventHandler(async (e) => {
 
-
-  const targetId = getRouterParam(e, 'id')!;
+  const targetId = getRouterParam(e, 'id');
+  if (!targetId) {
+    throw createError({ statusCode: 400, message: "Не указан id пользователя" });
+  }
 
   try {
 

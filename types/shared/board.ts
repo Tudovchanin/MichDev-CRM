@@ -43,3 +43,10 @@ export type UpdateBoardData = Partial<{
   managerId: string | null;
   isArchived: boolean;
 }>;
+
+
+export type BoardBaseMinimal = {
+  id: string;
+  name: string;
+  clientEmail?: string | null;
+};

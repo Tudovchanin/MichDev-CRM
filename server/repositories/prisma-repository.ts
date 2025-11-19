@@ -1,17 +1,28 @@
-
 import prisma from "~/lib/prisma";
-import type { CreateUserData, UserRepository, UpdateUserData, UserSearchConditions } from "~/types/backend/userRepo";
-import type { UserResponseCounts, UserBase, UserBaseMinimal } from "~/types/shared";
+import type {
+  CreateUserData,
+  UserRepository,
+  UpdateUserData,
+  UserSearchConditions,
+} from "~/types/backend/userRepo";
+import type {
+  UserResponseCounts,
+  UserBase,
+  UserBaseMinimal,
+} from "~/types/shared";
 import type { UserWithPassword } from "~/types/backend/userRepo";
-import type { BoardBase, UpdateBoardData, CreateBoardData } from "~/types/shared";
+import type {
+  BoardBase,
+  UpdateBoardData,
+  CreateBoardData,
+  BoardBaseMinimal,
+} from "~/types/shared";
 import type { BoardRepository } from "~/types/backend/boardRepo";
 import type { RefreshTokenRepository } from "~/types/backend/tokenRepo";
 import type { TaskRepository } from "~/types/backend/taskRepo";
-import type { TaskBase } from "~/types/shared";
-
+import type { TaskBase, TaskFilters } from "~/types/shared";
 
 export const prismaUserRepository: UserRepository = {
-
   async findByIdWithCounts(id: string): Promise<UserResponseCounts | null> {
     const user = await prisma.user.findUnique({
       where: { id },
@@ -78,9 +89,9 @@ export const prismaUserRepository: UserRepository = {
     return prisma.user.findUnique({
       where: { id },
       select: {
-        password: true
+        password: true,
       },
-    })
+    });
   },
 
   async findUsers(roles?: string[]): Promise<UserResponseCounts[]> {
@@ -113,7 +124,7 @@ export const prismaUserRepository: UserRepository = {
       },
     });
 
-    return users.map(u => ({
+    return users.map((u) => ({
       id: u.id,
       name: u.name,
       email: u.email,
@@ -131,11 +142,12 @@ export const prismaUserRepository: UserRepository = {
     }));
   },
 
-  async findByEmailWithPassword(email: string): Promise<UserWithPassword | null> {
-
+  async findByEmailWithPassword(
+    email: string
+  ): Promise<UserWithPassword | null> {
     const user = await prisma.user.findUnique({
       where: {
-        email
+        email,
       },
       select: {
         id: true,
@@ -182,7 +194,6 @@ export const prismaUserRepository: UserRepository = {
     };
 
     return userWithPassword;
-
   },
 
   async create(userData: CreateUserData): Promise<UserBase> {
@@ -197,7 +208,7 @@ export const prismaUserRepository: UserRepository = {
         isEmailConfirmed: true,
         isBlocked: true,
         createdAt: true,
-        updatedAt: true
+        updatedAt: true,
       },
     });
 
@@ -218,13 +229,16 @@ export const prismaUserRepository: UserRepository = {
           isEmailConfirmed: true,
           isBlocked: true,
           createdAt: true,
-          updatedAt: true
+          updatedAt: true,
         },
       });
       return user;
     } catch (err: any) {
-      if (err.code === 'P2025') {
-        throw createError({ statusCode: 404, message: 'Пользователь не найден' });
+      if (err.code === "P2025") {
+        throw createError({
+          statusCode: 404,
+          message: "Пользователь не найден",
+        });
       }
       throw err;
     }
@@ -241,10 +255,12 @@ export const prismaUserRepository: UserRepository = {
         },
       });
       return user;
-
     } catch (err: any) {
-      if (err.code === 'P2025') {
-        throw createError({ statusCode: 404, message: 'Пользователь не найден' });
+      if (err.code === "P2025") {
+        throw createError({
+          statusCode: 404,
+          message: "Пользователь не найден",
+        });
       }
       throw err;
     }
@@ -265,12 +281,10 @@ export const prismaUserRepository: UserRepository = {
         updatedAt: true,
       },
     });
-  }
-
+  },
 };
 
 export const prismaBoardRepository: BoardRepository = {
-
   async getBoardsForAdmin(archived?: boolean): Promise<BoardBase[]> {
     return prisma.board.findMany({
       where: {
@@ -289,7 +303,10 @@ export const prismaBoardRepository: BoardRepository = {
     });
   },
 
-  async getBoardsForManagerOrClient(userId: string, archived?: boolean): Promise<BoardBase[]> {
+  async getBoardsForManagerOrClient(
+    userId: string,
+    archived?: boolean
+  ): Promise<BoardBase[]> {
     return prisma.board.findMany({
       where: {
         OR: [{ managerId: userId }, { clientId: userId }],
@@ -320,7 +337,7 @@ export const prismaBoardRepository: BoardRepository = {
         isArchived: true,
         createdAt: true,
         updatedAt: true,
-      }
+      },
     });
   },
 
@@ -336,14 +353,13 @@ export const prismaBoardRepository: BoardRepository = {
         isArchived: true,
         createdAt: true,
         updatedAt: true,
-      }
+      },
     });
   },
 
+  // так же можно добавить в архив или восстановить
   async update(boardId: string, data: UpdateBoardData): Promise<BoardBase> {
-
     try {
-
       const board = await prisma.board.update({
         where: { id: boardId },
         data,
@@ -356,48 +372,16 @@ export const prismaBoardRepository: BoardRepository = {
           isArchived: true,
           createdAt: true,
           updatedAt: true,
-        }
+        },
       });
 
       return board;
-
     } catch (err: any) {
-
-      if (err.code === 'P2025') {
-        throw createError({ statusCode: 404, message: 'Пользователь не найден' });
-      }
-      throw err;
-
-    }
-
-
-  },
-
-  async archive(boardId: string): Promise<BoardBase> {
-
-    try {
-
-      const board = await prisma.board.update({
-        where: { id: boardId },
-        data: { isArchived: true },
-        select: {
-          id: true,
-          name: true,
-          clientEmail: true,
-          clientId: true,
-          managerId: true,
-          isArchived: true,
-          createdAt: true,
-          updatedAt: true,
-        }
-      });
-
-      return board;
-
-
-    } catch (err: any) {
-      if (err.code === 'P2025') {
-        throw createError({ statusCode: 404, message: 'Пользователь не найден' });
+      if (err.code === "P2025") {
+        throw createError({
+          statusCode: 404,
+          message: "Пользователь не найден",
+        });
       }
       throw err;
     }
@@ -406,14 +390,14 @@ export const prismaBoardRepository: BoardRepository = {
   async getBoardsForExecutor(userId: string): Promise<BoardBase[]> {
     // Получаем уникальные boardId прямо из базы
     const result = await prisma.task.groupBy({
-      by: ['boardId'],
+      by: ["boardId"],
       where: { assignedToId: userId },
     });
-  
-    const boardIds = result.map(r => r.boardId);
-  
+
+    const boardIds = result.map((r) => r.boardId);
+
     if (boardIds.length === 0) return [];
-  
+
     // Получаем доски по этим id
     const boards = await prisma.board.findMany({
       where: { id: { in: boardIds } },
@@ -428,11 +412,40 @@ export const prismaBoardRepository: BoardRepository = {
         updatedAt: true,
       },
     });
-  
-    return boards;
-  }
-  
 
+    return boards;
+  },
+
+  // есть ли исполнитель в доске, так как исполнители только к задачам привязаны
+  async isUserAssignedToBoard(
+    boardId: string,
+    userId: string
+  ): Promise<boolean> {
+    const task = await prisma.task.findFirst({
+      where: { boardId, assignedToId: userId },
+      select: { id: true },
+    });
+    return !!task;
+  },
+
+  async deleteById(id: string): Promise<BoardBaseMinimal> {
+    try {
+      const board = await prisma.board.delete({
+        where: { id },
+        select: {
+          id: true,
+          name: true,
+          clientEmail: true,
+        },
+      });
+      return board;
+    } catch (err: any) {
+      if (err.code === "P2025") {
+        throw createError({ statusCode: 404, message: "Доска не найдена" });
+      }
+      throw err;
+    }
+  },
 };
 
 export const prismaRefreshTokenRepository: RefreshTokenRepository = {
@@ -462,7 +475,6 @@ export const prismaRefreshTokenRepository: RefreshTokenRepository = {
 };
 
 export const prismaTaskRepository: TaskRepository = {
-
   async getAllTasks(): Promise<TaskBase[]> {
     return prisma.task.findMany({
       select: {
@@ -497,10 +509,21 @@ export const prismaTaskRepository: TaskRepository = {
       },
     });
   },
+  
+  async getTasksByBoard(
+    boardId: string,
+    filters?: TaskFilters
+  ): Promise<TaskBase[]> {
 
-  async getTasksByBoard(boardId: string): Promise<TaskBase[]> {
     return prisma.task.findMany({
-      where: { boardId },
+
+      where: {
+        boardId,
+        ...(filters?.status ? { status: filters.status } : {}),
+        ...(filters?.assignedToId ? { assignedToId: filters.assignedToId } : {}),
+        ...(filters?.deadline ? { deadline: filters.deadline } : {}),
+      },
+
       select: {
         id: true,
         title: true,
@@ -512,6 +535,9 @@ export const prismaTaskRepository: TaskRepository = {
         deadline: true,
         createdAt: true,
         updatedAt: true,
+      },
+      orderBy: {
+        order: "asc", // сортировка по порядку задач
       },
     });
   },

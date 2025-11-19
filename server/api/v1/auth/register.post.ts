@@ -2,15 +2,11 @@
 import UserService from "~/server/services/UserService";
 import RefreshTokenService from "~/server/services/RefreshTokenService";
 import EmailService from "~/server/services/EmailService";
-
 import { prismaUserRepository, prismaRefreshTokenRepository } from "~/server/repositories/prisma-repository";
-
 import { createAccessToken, createRefreshToken, getTokenExpiryDate } from "~/server/utils/jwt";
 import { setAuthCookie } from "~/server/utils/cookies";
-
 import { validateBody } from "~/server/utils/validate";
 import { registerSchema } from "~/server/validations/auth";
-
 import type { CreateUserData } from "~/types/backend/userRepo";
 import type { UserBase } from "~/types/shared";
 
@@ -20,8 +16,6 @@ const refreshTokenService = new RefreshTokenService(prismaRefreshTokenRepository
 
 
 export default defineEventHandler(async(e)=> {
-
-  
 
   const body: CreateUserData = await validateBody(registerSchema, e);;
 
@@ -38,9 +32,6 @@ export default defineEventHandler(async(e)=> {
     const expiresAt = getTokenExpiryDate(validityPeriodMs);
     await refreshTokenService.saveToken(user.id, tokenRefresh, expiresAt);
     setAuthCookie(e, tokenRefresh, validityPeriodMs);
-
-
-
 
     return {
       user,

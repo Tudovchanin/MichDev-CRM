@@ -1,5 +1,5 @@
 
-
+import type { AccessTokenPayload } from "../utils/jwt";
 
 
 export default defineEventHandler((e)=> {
@@ -7,16 +7,15 @@ export default defineEventHandler((e)=> {
   const path = e.path
 
   if (path.endsWith('login') || path.endsWith('register') || path.endsWith('refresh-token')) {
-     console.log('Без токена');
+     console.log('Без токена доступа');
      return;
   }
 
   const tokenAccess =  getAccessToken(e)
-  console.log('Проверка токена', tokenAccess);
   
   try {
-    const payload = verifyAccessToken(tokenAccess);;
-    e.context.currentUserPayload = payload;
+    const payload = verifyAccessToken(tokenAccess);
+    e.context.currentUserPayload = payload as AccessTokenPayload;
     
   } catch (error) {
     throw createError({ statusCode: 401, message: "Неверный или просроченный токен" });

@@ -124,13 +124,11 @@ class UserService {
   }
 
   async activateEmail(token: string): Promise<UserBase> {
-    console.log(token, 'TOKENeMAIL');
 
     const payload = verifyActivateEmailToken(token);
-    console.log(payload, 'PAYLOAD');
 
     if (!payload || typeof payload === 'string') throw new Error("Invalid or expired token");
-    const user: UserBase | null = await this.userRepository.findByIdBasic(payload.userId);
+    const user: UserBase | null = await this.userRepository.findByIdBasic(payload.sub);
     if (!user) {
       throw createError({
         statusCode: 404,

@@ -21,10 +21,6 @@ export type Task = {
 };
 
 
-
-
-
-
 export type TaskBase = {
   id: string;
   title: string;
@@ -36,4 +32,11 @@ export type TaskBase = {
   deadline: Date | null;
   createdAt: Date;
   updatedAt: Date;
+};
+
+
+export type TaskFilters = {
+  status?: TypeProjectStatus;          // например 'TODO', 'IN_PROGRESS', 'DONE'
+  assignedToId?: string;    // фильтр по исполнителю
+  deadline?: Date;          // дедлайн задачи
 };

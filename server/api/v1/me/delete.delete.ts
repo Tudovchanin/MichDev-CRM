@@ -31,7 +31,6 @@ export default defineEventHandler(async(e)=> {
 
   if(payload.sub !== e.context.currentUserPayload.sub) {
     throw createError({ statusCode: 401, message: 'Нет доступа, расхождение токенов' });
-
   }
 
 

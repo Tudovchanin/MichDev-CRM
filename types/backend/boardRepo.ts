@@ -1,6 +1,6 @@
 
 
-import type { BoardBase, UpdateBoardData, CreateBoardData } from "../shared";
+import type { BoardBase, UpdateBoardData, CreateBoardData, BoardBaseMinimal } from "../shared";
 
 
 export type BoardRepository = {
@@ -9,7 +9,8 @@ export type BoardRepository = {
   findById(boardId: string): Promise<BoardBase | null>;
   create(data: CreateBoardData): Promise<BoardBase>;
   update(boardId: string, data: UpdateBoardData): Promise<BoardBase>;
-  archive(boardId: string): Promise<BoardBase>;
-  getBoardsForExecutor(userId: string):Promise<BoardBase[]>
+  getBoardsForExecutor(userId: string):Promise<BoardBase[]>;
+  isUserAssignedToBoard(boardId: string, userId: string): Promise<boolean>;
+  deleteById(id: string): Promise<BoardBaseMinimal>
 };
 

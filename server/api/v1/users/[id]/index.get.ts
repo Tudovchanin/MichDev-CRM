@@ -16,8 +16,10 @@ const userService = new UserService(prismaUserRepository);
 
 export default defineEventHandler(async (e) => {
 
-
-  const targetId = getRouterParam(e, 'id')!;
+  const targetId= getRouterParam(e, 'id');
+  if (!targetId) {
+    throw createError({ statusCode: 400, message: "Не указан id пользователя" });
+  }
 
   try {
 
