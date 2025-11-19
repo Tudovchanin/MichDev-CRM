@@ -271,13 +271,10 @@ export const prismaUserRepository: UserRepository = {
 
 export const prismaBoardRepository: BoardRepository = {
 
-  async getBoardsForManagerOrClient(userId: string): Promise<BoardBase[]> {
+  async getBoardsForAdmin(archived?: boolean): Promise<BoardBase[]> {
     return prisma.board.findMany({
       where: {
-        OR: [
-          { managerId: userId },
-          { clientId: userId }
-        ]
+        ...(archived !== undefined ? { isArchived: archived } : {}),
       },
       select: {
         id: true,
@@ -288,7 +285,26 @@ export const prismaBoardRepository: BoardRepository = {
         isArchived: true,
         createdAt: true,
         updatedAt: true,
-      }
+      },
+    });
+  },
+
+  async getBoardsForManagerOrClient(userId: string, archived?: boolean): Promise<BoardBase[]> {
+    return prisma.board.findMany({
+      where: {
+        OR: [{ managerId: userId }, { clientId: userId }],
+        ...(archived !== undefined ? { isArchived: archived } : {}),
+      },
+      select: {
+        id: true,
+        name: true,
+        clientEmail: true,
+        clientId: true,
+        managerId: true,
+        isArchived: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     });
   },
 
@@ -386,17 +402,18 @@ export const prismaBoardRepository: BoardRepository = {
       throw err;
     }
   },
+
   async getBoardsForExecutor(userId: string): Promise<BoardBase[]> {
-    // Сначала получаем все задачи исполнителя
-    const tasks = await prisma.task.findMany({
+    // Получаем уникальные boardId прямо из базы
+    const result = await prisma.task.groupBy({
+      by: ['boardId'],
       where: { assignedToId: userId },
-      select: { boardId: true },
     });
-
-    // собираем уникальные id досок
-    const boardIds = [...new Set(tasks.map(t => t.boardId))];
+  
+    const boardIds = result.map(r => r.boardId);
+  
     if (boardIds.length === 0) return [];
-
+  
     // Получаем доски по этим id
     const boards = await prisma.board.findMany({
       where: { id: { in: boardIds } },
@@ -411,9 +428,10 @@ export const prismaBoardRepository: BoardRepository = {
         updatedAt: true,
       },
     });
-
+  
     return boards;
   }
+  
 
 };
 

@@ -10,42 +10,42 @@ import { assertValidUser } from "~/server/utils/auth";
 const userService = new UserService(prismaUserRepository);
 
 
-export default defineEventHandler (async(e)=> {
+export default defineEventHandler(async (e) => {
 
-  const userId= e.context.currentUserPayload.sub;
-  
+  const userId = e.context.currentUserPayload.sub;
+
   try {
 
-    const currentUser:UserBase = await userService.findByIdBasic(userId);
+    const currentUser: UserBase = await userService.findByIdBasic(userId);
 
     assertValidUser(currentUser);
-    
-    let users:UserResponseCounts[] | UserBase[];
+
+    let users: UserResponseCounts[] | UserBase[];
 
     switch (currentUser.role) {
       case 'ADMIN':
         users = await userService.findUsers();
         break;
-  
+
       case 'MANAGER':
         users = await userService.findUsers(['CLIENT', 'EXECUTOR']);
         break;
-  
+
       case 'EXECUTOR':
       case 'CLIENT':
         users = [currentUser];
         break;
-  
+
       default:
         throw createError({ statusCode: 500, message: "Неизвестная роль" });
     }
-  
+
     return { users };
-    
+
   } catch (error) {
 
-      throw error;
-  
+    throw error;
+
   }
 
 })

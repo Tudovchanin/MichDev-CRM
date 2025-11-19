@@ -24,18 +24,20 @@ async createBoard(data: CreateBoardData):Promise<BoardBase> {
 
 
 async updateBoard(boardId: string, data: UpdateBoardData) {
-
+  return this.boardRepository.update(boardId, data);
 }
 
 async archiveBoard(boardId: string) {
-
+  return this.boardRepository.archive(boardId);
 }
 
-async getBoardsForManagerOrClient(userId: string) {
-
-  return this.boardRepository.getBoardsForManagerOrClient(userId);
+async getBoardsForAdmin(archived?: boolean) {
+  return this.boardRepository.getBoardsForAdmin(archived);
 }
 
+async getBoardsForManagerOrClient(userId: string, archived?: boolean) {
+  return this.boardRepository.getBoardsForManagerOrClient(userId, archived);
+}
 
 async getBoardsForExecutor(userId: string): Promise<BoardBase[]> {
   return this.boardRepository.getBoardsForExecutor(userId);
