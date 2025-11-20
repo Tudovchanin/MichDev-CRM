@@ -17,7 +17,7 @@ export const validateBody = async <T>(schema: ZodType<T>, e: H3Event): Promise<T
     });
   }
 
-  return result.data; // уже типа T
+  return result.data;
 };
 
 

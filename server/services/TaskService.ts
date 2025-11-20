@@ -1,6 +1,6 @@
 import type { TaskRepository } from "~/types/backend/taskRepo";
 import BoardService from "./BoardService";
-import type { PaginationOptions, TaskBase, TaskFilters, TypeProjectStatus } from "~/types/shared";
+import type { PaginationOptions, TaskBase, TaskFilters } from "~/types/shared";
 import type { UserBase, TaskBaseMinimal } from "~/types/shared";
 import type { CreateTaskBodyServer, UpdateTaskBodyServer } from "../validations/task";
 import type { CreateTaskData, UpdateTaskData } from "~/types/backend/taskRepo";
@@ -10,6 +10,16 @@ class TaskService {
     private taskRepository: TaskRepository,
     private boardService?: BoardService
   ) { }
+
+  async getTaskById(taskId:string):Promise<TaskBase>{
+
+    const task = await this.taskRepository.findById(taskId);
+    if (!task) {
+      throw createError({ statusCode: 404, message: 'Задача не найдена' });
+    }
+    return task;
+  
+  }
 
   //  только админ и менеджер
   async createTask(body: CreateTaskBodyServer, user: UserBase): Promise<TaskBase> {
@@ -219,6 +229,7 @@ class TaskService {
         return [];
     }
   }
+
   async getTaskByIdForUser(taskId: string, user: UserBase): Promise<TaskBase> {
 
     const task = await this.taskRepository.findById(taskId);

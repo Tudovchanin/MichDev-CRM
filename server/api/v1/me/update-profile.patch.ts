@@ -30,7 +30,7 @@ export default defineEventHandler(async (e) => {
     throw createError({ statusCode: 401, message: 'Нет доступа, расхождение токенов' });
   }
 
-  const parsed = await validateBody(updateProfileSchema, e);
+  const body = await validateBody(updateProfileSchema, e);
 
 
   try {
@@ -38,7 +38,7 @@ export default defineEventHandler(async (e) => {
     const currentUser: UserBase = await userService.findByIdBasic(payload.sub);
     assertValidUser(currentUser);
 
-    const updateData:UpdateUserData = parsed.data;
+    const updateData:UpdateUserData = body;
 
     const updated = await userService.updateProfile(payload.sub, updateData);
 

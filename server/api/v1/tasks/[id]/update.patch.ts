@@ -30,7 +30,7 @@ export default defineEventHandler(async (e) => {
 
     const updatedTask = await taskService.updateTask(body, currentUser, taskId);
 
-    return { task: updatedTask };
+    return { task: updatedTask, message: "Задача обновлена" };
 
   } catch (err) {
     throw err;

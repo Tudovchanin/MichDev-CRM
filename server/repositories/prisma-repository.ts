@@ -21,8 +21,8 @@ import type { PaginationOptions } from "~/types/shared";
 import type { BoardRepository } from "~/types/backend/boardRepo";
 import type { RefreshTokenRepository } from "~/types/backend/tokenRepo";
 import type { TaskRepository, CreateTaskData, UpdateTaskData } from "~/types/backend/taskRepo";
-import type { TaskBase, TaskFilters, TaskBaseMinimal } from "~/types/shared";
-
+import type { TaskBase, TaskFilters, TaskBaseMinimal, CreateCommentData, CommentUpdate } from "~/types/shared";
+import type { CommentBase, CommentRepository } from "~/types/backend/commentRepo";
 
 
 export const prismaUserRepository: UserRepository = {
@@ -288,7 +288,7 @@ export const prismaUserRepository: UserRepository = {
 };
 
 export const prismaBoardRepository: BoardRepository = {
-  
+
   async getBoardsForAdmin(archived?: boolean): Promise<BoardBase[]> {
     return prisma.board.findMany({
       where: {
@@ -420,8 +420,8 @@ export const prismaBoardRepository: BoardRepository = {
     }
   },
 
-  // проверяем есть ли исполнитель в доске, так как исполнители только к задачам привязаны
-  async isUserAssignedToBoard(
+  // проверяем есть ли исполнитель в доске, так как исполнители к задачам привязаны, а не к доске
+  async isExecutorAssignedToBoard(
     boardId: string,
     userId: string
   ): Promise<boolean> {
@@ -478,11 +478,9 @@ export const prismaRefreshTokenRepository: RefreshTokenRepository = {
   },
 };
 
-
-
 export const prismaTaskRepository: TaskRepository = {
 
-  async findById(taskId:string):Promise<TaskBase | null>  {
+  async findById(taskId: string): Promise<TaskBase | null> {
 
     return prisma.task.findUnique({
       where: { id: taskId },
@@ -503,6 +501,7 @@ export const prismaTaskRepository: TaskRepository = {
   },
 
   async createTask(data: CreateTaskData): Promise<TaskBase> {
+
     return prisma.task.create({
       data,
       select: {
@@ -523,7 +522,6 @@ export const prismaTaskRepository: TaskRepository = {
 
   async updateTask(data: UpdateTaskData): Promise<TaskBase> {
 
-
     try {
       return prisma.task.update({
         where: { id: data.id },
@@ -537,8 +535,8 @@ export const prismaTaskRepository: TaskRepository = {
           deadline: data.deadline,
         },
       });
-      
-    } catch (err:any) {
+
+    } catch (err: any) {
       if (err.code === "P2025") {
         throw createError({
           statusCode: 404,
@@ -547,7 +545,7 @@ export const prismaTaskRepository: TaskRepository = {
       }
       throw err;
     }
-  
+
   },
 
   async getAllTasks({
@@ -584,6 +582,7 @@ export const prismaTaskRepository: TaskRepository = {
   },
 
   async getTasksForExecutor(
+
     userId: string,
     {
       skip = 0,
@@ -669,5 +668,106 @@ export const prismaTaskRepository: TaskRepository = {
       }
       throw err;
     }
+  },
+};
+
+export const prismaCommentRepository: CommentRepository = {
+
+  async findById(id: string): Promise<CommentBase | null> {
+    return prisma.comment.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        text: true,
+        authorId: true,
+        boardId: true,
+        taskId: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+  },
+
+  async findByTaskId(taskId: string, skip = 0, take = 20): Promise<CommentBase[]> {
+    return prisma.comment.findMany({
+      where: { taskId },
+      orderBy: { createdAt: 'desc' },
+      skip,
+      take,
+      select: {
+        id: true,
+        text: true,
+        authorId: true,
+        boardId: true,
+        taskId: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+  },
+
+  async create(data: CreateCommentData): Promise<CommentBase> {
+    return prisma.comment.create({
+      data,
+      select: {
+        id: true,
+        text: true,
+        authorId: true,
+        boardId: true,
+        taskId: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+  },
+
+  async update(id: string, data: CommentUpdate): Promise<CommentBase> {
+
+
+    try {
+      return prisma.comment.update({
+        where: { id },
+        data,
+        select: {
+          id: true,
+          text: true,
+          authorId: true,
+          boardId: true,
+          taskId: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      });
+    } catch (err: any) {
+      if (err.code === "P2025") {
+        throw createError({ statusCode: 404, message: "Коммент не найден" });
+      }
+      throw err;
+    }
+  },
+
+  async deleteById(id: string): Promise<CommentBase> {
+
+    try {
+      return prisma.comment.delete({
+        where: { id },
+        select: {
+          id: true,
+          text: true,
+          authorId: true,
+          boardId: true,
+          taskId: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      });
+
+    } catch (err: any) {
+      if (err.code === "P2025") {
+        throw createError({ statusCode: 404, message: "Коммент не найден" });
+      }
+      throw err;
+    }
+
   },
 };

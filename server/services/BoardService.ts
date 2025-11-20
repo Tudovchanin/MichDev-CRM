@@ -58,7 +58,7 @@ export class BoardService {
         return board;
 
       case 'EXECUTOR':
-        const isAssigned = await this.boardRepository.isUserAssignedToBoard(boardId, userId);
+        const isAssigned = await this.boardRepository.isExecutorAssignedToBoard(boardId, userId);
         if (!isAssigned) {
           throw createError({ statusCode: 403, message: 'Нет прав доступа к доске' });
         }

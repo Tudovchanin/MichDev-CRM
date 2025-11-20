@@ -10,16 +10,18 @@ const boardService = new BoardService(prismaBoardRepository);
 const userService = new UserService(prismaUserRepository);
 
 export default defineEventHandler(async (e) => {
+  
+  const boardId = getRouterParam(e, "id");
+  if (!boardId) {
+    throw createError({ statusCode: 400, message: "Не указан id доски" });
+  }
 
   const currentUser: UserBase = await userService.findByIdBasic(e.context.currentUserPayload.sub);
 
   assertValidUser(currentUser);
   assertRole(currentUser, ["ADMIN"]);
 
-  const boardId = getRouterParam(e, "id");
-  if (!boardId) {
-    throw createError({ statusCode: 400, message: "Не указан id доски" });
-  }
+ 
 
   try {
     const deletedBoard: BoardBaseMinimal = await boardService.deleteBoard(boardId);

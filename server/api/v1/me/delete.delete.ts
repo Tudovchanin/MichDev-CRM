@@ -1,17 +1,11 @@
 
 import UserService from "~/server/services/UserService";
-
 import {
   prismaUserRepository,
 } from "~/server/repositories/prisma-repository";
-
-
 import type { UserBase } from "~/types/shared";
 
-
-
 const userService = new UserService(prismaUserRepository);
-
 
 export default defineEventHandler(async(e)=> {
 

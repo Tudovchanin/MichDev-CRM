@@ -10,7 +10,7 @@ export type BoardRepository = {
   create(data: CreateBoardData): Promise<BoardBase>;
   update(boardId: string, data: UpdateBoardData): Promise<BoardBase>;
   getBoardsForExecutor(userId: string):Promise<BoardBase[]>;
-  isUserAssignedToBoard(boardId: string, userId: string): Promise<boolean>;
+  isExecutorAssignedToBoard(boardId: string, userId: string): Promise<boolean>;
   deleteById(id: string): Promise<BoardBaseMinimal>
 };
 

@@ -45,8 +45,6 @@ export type TaskFilters = {
   boardId?: string;
 };
 
-
-
 export type TaskBaseMinimal = {
   id: string;
   title: string;

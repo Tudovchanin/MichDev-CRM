@@ -31,11 +31,8 @@ export default defineEventHandler(async (e) => {
   }
 
 
-  const parsed = await validateBody(updatePasswordSchema, e);
+  const body = await validateBody(updatePasswordSchema, e);
 
-  if (!parsed.success) {
-    throw createError({ statusCode: 400, message: 'Invalid password data' });
-  }
 
   try {
     const currentUser: UserBase = await userService.findByIdBasic(payload.sub);
@@ -43,8 +40,8 @@ export default defineEventHandler(async (e) => {
 
     await userService.updatePassword(
       e.context.currentUserPayload.sub,
-      parsed.data.oldPassword,
-      parsed.data.newPassword
+      body.oldPassword,
+      body.newPassword
     );
 
     return {
