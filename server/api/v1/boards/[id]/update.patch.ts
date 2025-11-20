@@ -17,10 +17,6 @@ const userService = new UserService(prismaUserRepository);
 export default defineEventHandler(async(e)=> {
 
 
-  const currentUser: UserBase = await userService.findByIdBasic(e.context.currentUserPayload.sub);
-
-  assertValidUser(currentUser);
-  assertRole(currentUser, ["ADMIN", "MANAGER"]);
 
   const boardId = getRouterParam(e, 'id');
 
@@ -28,13 +24,23 @@ export default defineEventHandler(async(e)=> {
     throw createError({ statusCode: 400, message: "Не указан id доски" });
   }
 
+  const currentUser: UserBase = await userService.findByIdBasic(e.context.currentUserPayload.sub);
+
+  assertValidUser(currentUser);
+  assertRole(currentUser, ["ADMIN", "MANAGER"]);
+
+
+
+  const body: UpdateBoardData = await validateBody(updateBoardSchema, e);
+
+
+
   const board:BoardBase = await boardService.getBoardByIdForUser(
     currentUser.id,
     currentUser.role,
     boardId
   );
 
-const body: UpdateBoardData = await validateBody(updateBoardSchema, e);
 
 if (currentUser.role !== "ADMIN" && "managerId" in body) {
   throw createError({

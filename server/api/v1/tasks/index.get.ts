@@ -6,7 +6,8 @@ import { prismaTaskRepository, prismaBoardRepository, prismaUserRepository } fro
 import { assertValidUser, assertRole, validateQuery } from "#imports";
 import { taskFiltersQuerySchema } from "~/server/validations/task";
 
-import type { BoardBase, UserBase,TaskFilters, TaskBase } from "~/types/shared";
+import type { UserBase, TaskFilters, TaskBase, PaginationOptions } from "~/types/shared";
+
 
 
 const boardService = new BoardService(prismaBoardRepository);
@@ -29,16 +30,27 @@ export default defineEventHandler(async (e) => {
   // Роли, кто может видеть задачи
   assertRole(currentUser, ["ADMIN", "MANAGER", "CLIENT", "EXECUTOR"]);
 
-  const filters: TaskFilters = {
-    status: filtersQuery.status as TaskFilters["status"],
-    assignedToId: filtersQuery.assignedToId,
-    deadline: filtersQuery.deadline ? new Date(filtersQuery.deadline) : undefined,
-    boardId: filtersQuery.boardId,
-  };
 
-  let tasks: TaskBase[] = [];
+ // Формируем фильтры
+ const filters: TaskFilters & PaginationOptions = {
+  status: filtersQuery.status as TaskFilters["status"],
+  assignedToId: filtersQuery.assignedToId,
+  responsibleId: filtersQuery.responsibleId, // если добавил поддержку responsibleId в query
+  boardId: filtersQuery.boardId,
+  skip: filtersQuery.skip,
+  take: filtersQuery.take,
+};
 
-  
 
+  try {
+     // Получаем задачи через сервис
+  const tasks: TaskBase[] = await taskService.getTasksForUser(currentUser, filters);
   return { tasks };
-});
+
+
+  } catch (err) {
+    throw err;
+
+  }
+
+  });

@@ -17,10 +17,13 @@ import type {
   CreateBoardData,
   BoardBaseMinimal,
 } from "~/types/shared";
+import type { PaginationOptions } from "~/types/shared";
 import type { BoardRepository } from "~/types/backend/boardRepo";
 import type { RefreshTokenRepository } from "~/types/backend/tokenRepo";
-import type { TaskRepository } from "~/types/backend/taskRepo";
-import type { TaskBase, TaskFilters, TypeProjectStatus } from "~/types/shared";
+import type { TaskRepository, CreateTaskData, UpdateTaskData } from "~/types/backend/taskRepo";
+import type { TaskBase, TaskFilters, TaskBaseMinimal } from "~/types/shared";
+
+
 
 export const prismaUserRepository: UserRepository = {
   async findByIdWithCounts(id: string): Promise<UserResponseCounts | null> {
@@ -285,6 +288,7 @@ export const prismaUserRepository: UserRepository = {
 };
 
 export const prismaBoardRepository: BoardRepository = {
+  
   async getBoardsForAdmin(archived?: boolean): Promise<BoardBase[]> {
     return prisma.board.findMany({
       where: {
@@ -474,22 +478,94 @@ export const prismaRefreshTokenRepository: RefreshTokenRepository = {
   },
 };
 
+
+
 export const prismaTaskRepository: TaskRepository = {
+
+  async findById(taskId:string):Promise<TaskBase | null>  {
+
+    return prisma.task.findUnique({
+      where: { id: taskId },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        status: true,
+        order: true,
+        boardId: true,
+        assignedToId: true,
+        responsibleId: true,
+        deadline: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+  },
+
+  async createTask(data: CreateTaskData): Promise<TaskBase> {
+    return prisma.task.create({
+      data,
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        status: true,
+        order: true,
+        boardId: true,
+        assignedToId: true,
+        responsibleId: true,
+        deadline: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+  },
+
+  async updateTask(data: UpdateTaskData): Promise<TaskBase> {
+
+
+    try {
+      return prisma.task.update({
+        where: { id: data.id },
+        data: {
+          title: data.title,
+          description: data.description,
+          status: data.status,
+          assignedToId: data.assignedToId,
+          responsibleId: data.responsibleId,
+          order: data.order,
+          deadline: data.deadline,
+        },
+      });
+      
+    } catch (err:any) {
+      if (err.code === "P2025") {
+        throw createError({
+          statusCode: 404,
+          message: "Пользователь не найден",
+        });
+      }
+      throw err;
+    }
+  
+  },
 
   async getAllTasks({
     skip = 0,
     take = 20,
-    status = null,
-  }: {
-    skip?: number;
-    take?: number;
-    status?: TypeProjectStatus | null;
-  } = {}): Promise<TaskBase[]> {
+    status,
+    assignedToId,
+    responsibleId,
+    boardId
+  }: PaginationOptions & TaskFilters = {}): Promise<TaskBase[]> {
     return prisma.task.findMany({
       skip,
       take,
       where: {
-        ...(status ? { status } : {}), // ← фильтр включается ОПЦИОНАЛЬНО
+        ...(boardId ? { boardId } : {}),
+        ...(status ? { status } : {}),
+        ...(assignedToId !== undefined ? { assignedToId } : {}),
+        ...(responsibleId !== undefined ? { responsibleId } : {}),
       },
       select: {
         id: true,
@@ -499,6 +575,7 @@ export const prismaTaskRepository: TaskRepository = {
         order: true,
         boardId: true,
         assignedToId: true,
+        responsibleId: true,
         deadline: true,
         createdAt: true,
         updatedAt: true,
@@ -511,17 +588,20 @@ export const prismaTaskRepository: TaskRepository = {
     {
       skip = 0,
       take = 20,
-      status = null,
-    }: {
-      skip?: number;
-      take?: number;
-      status?: TypeProjectStatus | null;
-    } = {}
+      status,
+      responsibleId,
+      boardId
+    }: PaginationOptions & TaskFilters = {}
   ): Promise<TaskBase[]> {
     return prisma.task.findMany({
       skip,
       take,
-      where: { assignedToId: userId, ...(status ? { status } : {}) },
+      where: {
+        assignedToId: userId,
+        ...(boardId ? { boardId } : {}),
+        ...(status ? { status } : {}),
+        ...(responsibleId ? { responsibleId } : {}),
+      },
       select: {
         id: true,
         title: true,
@@ -530,6 +610,7 @@ export const prismaTaskRepository: TaskRepository = {
         order: true,
         boardId: true,
         assignedToId: true,
+        responsibleId: true,
         deadline: true,
         createdAt: true,
         updatedAt: true,
@@ -539,15 +620,19 @@ export const prismaTaskRepository: TaskRepository = {
 
   async getTasksByBoard(
     boardId: string,
-    filters?: TaskFilters
+    {
+      status,
+      assignedToId,
+      responsibleId,
+    }: PaginationOptions & TaskFilters = {}
   ): Promise<TaskBase[]> {
     return prisma.task.findMany({
       where: {
         boardId,
-        ...(filters?.status ? { status: filters.status } : {}),
-        ...(filters?.assignedToId  ? { assignedToId: filters.assignedToId }: {}),
+        ...(status ? { status } : {}),
+        ...(assignedToId !== undefined ? { assignedToId } : {}),
+        ...(responsibleId !== undefined ? { responsibleId } : {}),
       },
-
       select: {
         id: true,
         title: true,
@@ -556,13 +641,33 @@ export const prismaTaskRepository: TaskRepository = {
         order: true,
         boardId: true,
         assignedToId: true,
+        responsibleId: true,
         deadline: true,
         createdAt: true,
         updatedAt: true,
       },
       orderBy: {
-        order: "asc", // сортировка по порядку задач
+        order: "asc",
       },
     });
+  },
+
+  async deleteById(id: string): Promise<TaskBaseMinimal> {
+    try {
+      const task = await prisma.task.delete({
+        where: { id },
+        select: {
+          id: true,
+          title: true,
+          boardId: true,
+        },
+      });
+      return task;
+    } catch (err: any) {
+      if (err.code === "P2025") {
+        throw createError({ statusCode: 404, message: "Доска не найдена" });
+      }
+      throw err;
+    }
   },
 };

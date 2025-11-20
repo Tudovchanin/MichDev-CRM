@@ -1,36 +1,39 @@
+
+
+
+import { getRouterParam } from "#imports";
 import TaskService from "~/server/services/TaskService";
 import BoardService from "~/server/services/BoardService";
 import UserService from "~/server/services/UserService";
-
 import { prismaTaskRepository, prismaBoardRepository, prismaUserRepository } from "~/server/repositories/prisma-repository";
-import { assertValidUser, assertRole, validateBody } from "#imports";
-import { createTaskBodySchema } from "~/server/validations/task";
-
-
-import type { TaskBase, UserBase } from "~/types/shared";
-
+import { assertValidUser} from "#imports";
 
 const boardService = new BoardService(prismaBoardRepository);
 const taskService = new TaskService(prismaTaskRepository, boardService);
 const userService = new UserService(prismaUserRepository);
 
+export default defineEventHandler(async (e) => {
+  const taskId = getRouterParam(e, "id");
+  if (!taskId) {
+    throw createError({ statusCode: 400, message: "Не указан id задачи" });
+  }
 
-export default defineEventHandler(async(e)=> {
-
-  const body = await validateBody(createTaskBodySchema, e);
-  const currentUser: UserBase = await userService.findByIdBasic(e.context.currentUserPayload.sub);
-
+  const currentUser = await userService.findByIdBasic(e.context.currentUserPayload.sub);
   assertValidUser(currentUser);
-  assertRole(currentUser, ['ADMIN', 'MANAGER']);
+
 
 
   try {
 
+  const task = await taskService.getTaskByIdForUser(taskId, currentUser);
+  
 
-  const task: TaskBase = await taskService.createTask(body, currentUser);
   return { task };
     
   } catch (err) {
-    throw err;
+    throw(err)
   }
-})
+
+
+
+});
