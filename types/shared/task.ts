@@ -36,7 +36,7 @@ export type TaskBase = {
 
 
 export type TaskFilters = {
-  status?: TypeProjectStatus;          // например 'TODO', 'IN_PROGRESS', 'DONE'
+  status?: TypeProjectStatus;      // например 'TODO', 'IN_PROGRESS', 'DONE'
   assignedToId?: string;    // фильтр по исполнителю
-  deadline?: Date;          // дедлайн задачи
+  boardId?: string;
 };

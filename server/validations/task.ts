@@ -21,5 +21,5 @@ export const taskFiltersQuerySchema = z.object({
     .pipe(z.enum(["NEW", "IN_PROGRESS", "REVISION", "REVIEW", "DONE"]))
     .optional(),
   assignedToId: z.string().optional(),
-  deadline: z.string().optional(), // передадим строкой
+  boardId: z.string().optional(),
 });

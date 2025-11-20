@@ -45,6 +45,7 @@ model User {
 
   // Связи
   boardsAsManager Board[] @relation("ManagerBoards")
+  tasksResponsible Task[] @relation("ResponsibleTasks")
   boardsAsClient  Board[] @relation("ClientBoards")
   tasksAssigned   Task[]  @relation("ExecutorTasks")
   comments        Comment[]
@@ -79,12 +80,16 @@ model Task {
   order        Int?
   boardId      String
   assignedToId String?           // исполнитель
+  responsibleId String?        // менеджер кто создал создачу
   deadline     DateTime?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
   // Связи
   board        Board   @relation(fields: [boardId], references: [id])
+  // отвественный за задачу(менеджер)
+  responsible  User? @relation("ResponsibleTasks", fields: [responsibleId], references: [id], onDelete: SetNull)
+  // исполнитель задачи (исполнитель)
   assignedTo   User?   @relation("ExecutorTasks", fields: [assignedToId], references: [id], onDelete: SetNull)
   comments     Comment[]
   notifications Notification[]

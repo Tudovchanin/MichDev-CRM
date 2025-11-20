@@ -16,9 +16,9 @@ const boardService = new BoardService(prismaBoardRepository);
 export default defineEventHandler(async(e)=> {
 
 
-  const query:{archived: string | undefined } = validateQuery(queryBoardsSchema, e);
+  const filtersQuery = validateQuery(queryBoardsSchema, e);
 
-  const archived = query.archived === 'true'; 
+  const archived = filtersQuery.archived === 'true'; 
 
 
 //  текущий пользователь

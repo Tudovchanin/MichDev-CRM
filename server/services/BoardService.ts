@@ -22,13 +22,8 @@ export class BoardService {
     return board;
   }
 
-
   async updateBoard(boardId: string, data: UpdateBoardData) {
     return this.boardRepository.update(boardId, data);
-  }
-
-  async archiveBoard(boardId: string) {
-    return this.boardRepository.archive(boardId);
   }
 
   async getBoardsForAdmin(archived?: boolean) {
@@ -71,6 +66,20 @@ export class BoardService {
 
       default:
         throw createError({ statusCode: 403, message: 'Нет прав доступа' });
+    }
+  }
+  
+  async getBoardsByUser(userId: string, role: string): Promise<BoardBase[]> {
+    switch (role) {
+      case "ADMIN":
+        return this.getBoardsForAdmin();
+      case "MANAGER":
+      case "CLIENT":
+        return this.getBoardsForManagerOrClient(userId);
+      case "EXECUTOR":
+        return this.getBoardsForExecutor(userId);
+      default:
+        return [];
     }
   }
 

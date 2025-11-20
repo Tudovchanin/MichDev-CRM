@@ -5,3 +5,8 @@ export * from './comment';
 export * from './notification';
 export * from './refreshToken';
 export * from './enums';
+
+export type PaginationOptions = {
+  skip?: number;
+  take?: number;
+};

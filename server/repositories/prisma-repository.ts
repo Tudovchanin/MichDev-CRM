@@ -20,7 +20,7 @@ import type {
 import type { BoardRepository } from "~/types/backend/boardRepo";
 import type { RefreshTokenRepository } from "~/types/backend/tokenRepo";
 import type { TaskRepository } from "~/types/backend/taskRepo";
-import type { TaskBase, TaskFilters } from "~/types/shared";
+import type { TaskBase, TaskFilters, TypeProjectStatus } from "~/types/shared";
 
 export const prismaUserRepository: UserRepository = {
   async findByIdWithCounts(id: string): Promise<UserResponseCounts | null> {
@@ -325,6 +325,35 @@ export const prismaBoardRepository: BoardRepository = {
     });
   },
 
+  async getBoardsForExecutor(userId: string): Promise<BoardBase[]> {
+    // Получаем уникальные boardId прямо из базы
+    const result = await prisma.task.groupBy({
+      by: ["boardId"],
+      where: { assignedToId: userId },
+    });
+
+    const boardIds = result.map((r) => r.boardId);
+
+    if (boardIds.length === 0) return [];
+
+    // Получаем доски по этим id
+    const boards = await prisma.board.findMany({
+      where: { id: { in: boardIds } },
+      select: {
+        id: true,
+        name: true,
+        clientEmail: true,
+        clientId: true,
+        managerId: true,
+        isArchived: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    return boards;
+  },
+
   async findById(boardId: string): Promise<BoardBase | null> {
     return prisma.board.findUnique({
       where: { id: boardId },
@@ -387,36 +416,7 @@ export const prismaBoardRepository: BoardRepository = {
     }
   },
 
-  async getBoardsForExecutor(userId: string): Promise<BoardBase[]> {
-    // Получаем уникальные boardId прямо из базы
-    const result = await prisma.task.groupBy({
-      by: ["boardId"],
-      where: { assignedToId: userId },
-    });
-
-    const boardIds = result.map((r) => r.boardId);
-
-    if (boardIds.length === 0) return [];
-
-    // Получаем доски по этим id
-    const boards = await prisma.board.findMany({
-      where: { id: { in: boardIds } },
-      select: {
-        id: true,
-        name: true,
-        clientEmail: true,
-        clientId: true,
-        managerId: true,
-        isArchived: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    });
-
-    return boards;
-  },
-
-  // есть ли исполнитель в доске, так как исполнители только к задачам привязаны
+  // проверяем есть ли исполнитель в доске, так как исполнители только к задачам привязаны
   async isUserAssignedToBoard(
     boardId: string,
     userId: string
@@ -475,8 +475,22 @@ export const prismaRefreshTokenRepository: RefreshTokenRepository = {
 };
 
 export const prismaTaskRepository: TaskRepository = {
-  async getAllTasks(): Promise<TaskBase[]> {
+
+  async getAllTasks({
+    skip = 0,
+    take = 20,
+    status = null,
+  }: {
+    skip?: number;
+    take?: number;
+    status?: TypeProjectStatus | null;
+  } = {}): Promise<TaskBase[]> {
     return prisma.task.findMany({
+      skip,
+      take,
+      where: {
+        ...(status ? { status } : {}), // ← фильтр включается ОПЦИОНАЛЬНО
+      },
       select: {
         id: true,
         title: true,
@@ -492,9 +506,22 @@ export const prismaTaskRepository: TaskRepository = {
     });
   },
 
-  async getTasksByUser(userId: string): Promise<TaskBase[]> {
+  async getTasksForExecutor(
+    userId: string,
+    {
+      skip = 0,
+      take = 20,
+      status = null,
+    }: {
+      skip?: number;
+      take?: number;
+      status?: TypeProjectStatus | null;
+    } = {}
+  ): Promise<TaskBase[]> {
     return prisma.task.findMany({
-      where: { assignedToId: userId },
+      skip,
+      take,
+      where: { assignedToId: userId, ...(status ? { status } : {}) },
       select: {
         id: true,
         title: true,
@@ -509,19 +536,16 @@ export const prismaTaskRepository: TaskRepository = {
       },
     });
   },
-  
+
   async getTasksByBoard(
     boardId: string,
     filters?: TaskFilters
   ): Promise<TaskBase[]> {
-
     return prisma.task.findMany({
-
       where: {
         boardId,
         ...(filters?.status ? { status: filters.status } : {}),
-        ...(filters?.assignedToId ? { assignedToId: filters.assignedToId } : {}),
-        ...(filters?.deadline ? { deadline: filters.deadline } : {}),
+        ...(filters?.assignedToId  ? { assignedToId: filters.assignedToId }: {}),
       },
 
       select: {
