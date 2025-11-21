@@ -1,16 +1,17 @@
 
-
 import type { CommentRepository, CommentBase } from "~/types/backend/commentRepo";
 import type { CreateCommentData, CommentUpdate } from "~/types/shared";
 
-
 class CommentService {
   constructor(
-    private commentRepository: CommentRepository
+    private commentRepository: CommentRepository,
   ) { }
 
   async createComment(data: CreateCommentData): Promise<CommentBase> {
-    return this.commentRepository.create(data);
+    const comment = await this.commentRepository.create(data);
+
+
+    return comment;
   }
 
   async updateComment(id: string, data: CommentUpdate, userId: string): Promise<CommentBase> {

@@ -1,5 +1,5 @@
 // types/backend/userRepo.ts
-import type { User, UserBase,UserBaseMinimal, UserResponseCounts, UserResponseFull } from '~/types/shared/user';
+import type { User, UserBase,UserBaseMinimal, UserResponseCounts } from '~/types/shared/user';
 
 export type CreateUserData = Pick<User, 'name' | 'email' | 'password'>;
 export type AuthenticateUserData = Pick<User, 'email' | 'password'>;

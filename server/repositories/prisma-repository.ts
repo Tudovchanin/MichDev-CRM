@@ -1,28 +1,41 @@
+
 import prisma from "~/lib/prisma";
 import type {
   CreateUserData,
   UserRepository,
   UpdateUserData,
   UserSearchConditions,
+  UserWithPassword
 } from "~/types/backend/userRepo";
+import type { BoardRepository } from "~/types/backend/boardRepo";
+import type { RefreshTokenRepository } from "~/types/backend/tokenRepo";
+import type {
+  TaskRepository,
+  CreateTaskData,
+  UpdateTaskData,
+} from "~/types/backend/taskRepo";
+import type {
+  CommentBase,
+  CommentRepository,
+} from "~/types/backend/commentRepo";
+import type { NotificationRepository } from "~/types/backend/notificationRepo";
 import type {
   UserResponseCounts,
   UserBase,
   UserBaseMinimal,
-} from "~/types/shared";
-import type { UserWithPassword } from "~/types/backend/userRepo";
-import type {
   BoardBase,
   UpdateBoardData,
   CreateBoardData,
   BoardBaseMinimal,
+  PaginationOptions,
+  TaskBase,
+  TaskFilters,
+  TaskBaseMinimal,
+  CreateCommentData,
+  CommentUpdate,
+  NotificationBase,
+  CreateNotification
 } from "~/types/shared";
-import type { PaginationOptions } from "~/types/shared";
-import type { BoardRepository } from "~/types/backend/boardRepo";
-import type { RefreshTokenRepository } from "~/types/backend/tokenRepo";
-import type { TaskRepository, CreateTaskData, UpdateTaskData } from "~/types/backend/taskRepo";
-import type { TaskBase, TaskFilters, TaskBaseMinimal, CreateCommentData, CommentUpdate } from "~/types/shared";
-import type { CommentBase, CommentRepository } from "~/types/backend/commentRepo";
 
 
 export const prismaUserRepository: UserRepository = {
@@ -288,7 +301,6 @@ export const prismaUserRepository: UserRepository = {
 };
 
 export const prismaBoardRepository: BoardRepository = {
-
   async getBoardsForAdmin(archived?: boolean): Promise<BoardBase[]> {
     return prisma.board.findMany({
       where: {
@@ -479,9 +491,7 @@ export const prismaRefreshTokenRepository: RefreshTokenRepository = {
 };
 
 export const prismaTaskRepository: TaskRepository = {
-
   async findById(taskId: string): Promise<TaskBase | null> {
-
     return prisma.task.findUnique({
       where: { id: taskId },
       select: {
@@ -501,7 +511,6 @@ export const prismaTaskRepository: TaskRepository = {
   },
 
   async createTask(data: CreateTaskData): Promise<TaskBase> {
-
     return prisma.task.create({
       data,
       select: {
@@ -521,7 +530,6 @@ export const prismaTaskRepository: TaskRepository = {
   },
 
   async updateTask(data: UpdateTaskData): Promise<TaskBase> {
-
     try {
       return prisma.task.update({
         where: { id: data.id },
@@ -535,7 +543,6 @@ export const prismaTaskRepository: TaskRepository = {
           deadline: data.deadline,
         },
       });
-
     } catch (err: any) {
       if (err.code === "P2025") {
         throw createError({
@@ -545,7 +552,6 @@ export const prismaTaskRepository: TaskRepository = {
       }
       throw err;
     }
-
   },
 
   async getAllTasks({
@@ -554,7 +560,7 @@ export const prismaTaskRepository: TaskRepository = {
     status,
     assignedToId,
     responsibleId,
-    boardId
+    boardId,
   }: PaginationOptions & TaskFilters = {}): Promise<TaskBase[]> {
     return prisma.task.findMany({
       skip,
@@ -582,14 +588,13 @@ export const prismaTaskRepository: TaskRepository = {
   },
 
   async getTasksForExecutor(
-
     userId: string,
     {
       skip = 0,
       take = 20,
       status,
       responsibleId,
-      boardId
+      boardId,
     }: PaginationOptions & TaskFilters = {}
   ): Promise<TaskBase[]> {
     return prisma.task.findMany({
@@ -672,7 +677,6 @@ export const prismaTaskRepository: TaskRepository = {
 };
 
 export const prismaCommentRepository: CommentRepository = {
-
   async findById(id: string): Promise<CommentBase | null> {
     return prisma.comment.findUnique({
       where: { id },
@@ -688,10 +692,14 @@ export const prismaCommentRepository: CommentRepository = {
     });
   },
 
-  async findByTaskId(taskId: string, skip = 0, take = 20): Promise<CommentBase[]> {
+  async findByTaskId(
+    taskId: string,
+    skip = 0,
+    take = 20
+  ): Promise<CommentBase[]> {
     return prisma.comment.findMany({
       where: { taskId },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
       skip,
       take,
       select: {
@@ -722,8 +730,6 @@ export const prismaCommentRepository: CommentRepository = {
   },
 
   async update(id: string, data: CommentUpdate): Promise<CommentBase> {
-
-
     try {
       return prisma.comment.update({
         where: { id },
@@ -747,7 +753,6 @@ export const prismaCommentRepository: CommentRepository = {
   },
 
   async deleteById(id: string): Promise<CommentBase> {
-
     try {
       return prisma.comment.delete({
         where: { id },
@@ -761,13 +766,71 @@ export const prismaCommentRepository: CommentRepository = {
           updatedAt: true,
         },
       });
-
     } catch (err: any) {
       if (err.code === "P2025") {
         throw createError({ statusCode: 404, message: "Коммент не найден" });
       }
       throw err;
     }
+  },
+};
 
+export const prismaNotificationRepository:NotificationRepository = {
+
+  async findByUserId(
+    userId: string,
+    skip = 0,
+    take = 50
+  ): Promise<NotificationBase[]> {
+    return prisma.notification.findMany({
+      where: { userId },
+      orderBy: { createdAt: "desc" },
+      skip,
+      take,
+      select: {
+        id: true,
+        userId: true,
+        boardId: true,
+        taskId: true,
+        type: true,
+        message: true,
+        meta: true,
+        isRead: true,
+        createdAt: true,
+      },
+    });
+  },
+
+  async markAllAsRead(userId: string): Promise<number> {
+    const res = await prisma.notification.updateMany({
+      where: { userId, isRead: false },
+      data: { isRead: true },
+    });
+    return res.count;
+  },
+
+  async create(data:CreateNotification): Promise<NotificationBase> {
+    return prisma.notification.create({
+      data: {
+        userId: data.userId,
+        type: data.type,
+        message: data.message,
+        meta: data.meta ?? null,
+        boardId: data.boardId ?? null,
+        taskId: data.taskId ?? null,
+        isRead: false,
+      },
+      select: {
+        id: true,
+        userId: true,
+        boardId: true,
+        taskId: true,
+        type: true,
+        message: true,
+        meta: true,
+        isRead: true,
+        createdAt: true,
+      },
+    });
   },
 };

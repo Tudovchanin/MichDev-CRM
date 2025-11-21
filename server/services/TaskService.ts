@@ -29,7 +29,8 @@ class TaskService {
       status: body.status ?? "NEW",
       boardId: body.boardId,
       assignedToId: body.assignedToId ?? null,
-      responsibleId: body.responsibleId ?? user.id, // если менеджер создал задачу
+      // админ может выбирать из менеджеров на задачу(responsibleId), а менеджер назначается автоматом
+      responsibleId: user.role === 'ADMIN' ? body.responsibleId ?? user.id : user.id,
       order: body.order ?? null,
       deadline: body.deadline ?? null,
     };
