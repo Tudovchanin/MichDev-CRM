@@ -14,3 +14,7 @@ export type BoardRepository = {
   deleteById(id: string): Promise<BoardBaseMinimal>
 };
 
+
+
+
+export type BoardBaseNonNullManager = Omit<BoardBase, 'managerId'> & { managerId: string };

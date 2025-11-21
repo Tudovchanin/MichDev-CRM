@@ -22,7 +22,7 @@ export default defineEventHandler(async (e) => {
   const currentUser = await userService.findByIdBasic(e.context.currentUserPayload.sub);
 
   assertValidUser(currentUser);
-  assertRole(currentUser, ["ADMIN", "MANAGER", 'CLIENT']);
+  assertRole(currentUser, ["ADMIN", "MANAGER", 'EXECUTOR']);
 
   const body = await validateBody(updateTaskSchema, e);
 

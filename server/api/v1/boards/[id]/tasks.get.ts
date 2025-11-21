@@ -6,7 +6,7 @@ import UserService from "~/server/services/UserService";
 import { assertValidUser, assertRole } from "#imports";
 import { validateQuery } from "#imports";
 import { taskFiltersQuerySchema } from "~/server/validations/task";
-import type { TaskFilters, UserBase } from "~/types/shared";
+import type { TaskBase, TaskFilters, UserBase } from "~/types/shared";
 
 const boardService = new BoardService(prismaBoardRepository);
 const taskService = new TaskService(prismaTaskRepository, boardService);
@@ -35,7 +35,7 @@ export default defineEventHandler(async (e) => {
   };
 
   try {
-    const tasks = await taskService.getTasksByBoard(boardId, currentUser, filters);
+    const tasks:TaskBase[] = await taskService.getTasksByBoard(boardId, currentUser, filters);
     return { tasks };
   } catch (err) {
     throw err;

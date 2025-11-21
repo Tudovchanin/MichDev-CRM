@@ -2,7 +2,7 @@
 import BoardService from "~/server/services/BoardService";
 import UserService from "~/server/services/UserService";
 import {  prismaBoardRepository, prismaUserRepository } from "~/server/repositories/prisma-repository";
-import type { UserBase } from "~/types/shared";
+import type { BoardBase, UserBase } from "~/types/shared";
 const userService = new UserService(prismaUserRepository);
 
 const boardService = new BoardService(prismaBoardRepository);
@@ -19,7 +19,7 @@ export default defineEventHandler(async(e)=> {
   }
   
   try {
-    const board = await boardService.getBoardByIdForUser(
+    const board:BoardBase = await boardService.getBoardByIdForUser(
       currentUser.id,
       currentUser.role,
       boardId

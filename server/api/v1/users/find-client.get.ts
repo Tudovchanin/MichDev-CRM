@@ -6,6 +6,7 @@ import { findClientQuerySchema } from "~/server/validations/user";
 import {
   prismaUserRepository,
 } from "~/server/repositories/prisma-repository";
+import { UserBase } from "~/types/shared";
 
 
 const userService = new UserService(prismaUserRepository);
@@ -27,11 +28,15 @@ export default defineEventHandler(async (e) => {
       throw createError({ statusCode: 400, message: "Нужно передать хотя бы один параметр запроса для поиска" });
     }
   
+const isBlockedBool = isBlocked === "true" ? true :
+isBlocked === "false" ? false :
+undefined;
+
   
-    const users = await userService.findClientsByCondition({
+    const users:UserBase[] = await userService.findClientsByCondition({
       email,
       name,
-      isBlocked,
+      isBlocked:isBlockedBool ,
     });
   
     return { users };

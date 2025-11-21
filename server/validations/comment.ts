@@ -10,7 +10,7 @@ export const createCommentBodySchema = z.object({
 
 // Для PATCH /comments/:id
 export const updateCommentBodySchema = z.object({
-  text: z.string().min(1, "Комментарий не может быть пустым").optional(),
+  text: z.string().min(1, "Комментарий не может быть пустым"),
 });
 
 // Для GET /comments с фильтрацией и пагинацией

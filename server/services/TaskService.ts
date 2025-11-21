@@ -46,7 +46,6 @@ class TaskService {
   ): Promise<TaskBase> {
 
 
-  
     const task = await this.taskRepository.findById(taskId);
     if (!task) {
       throw createError({ statusCode: 404, message: "Задача не найдена" });
@@ -60,12 +59,12 @@ class TaskService {
         data = {
           id: taskId,
           title: body.title,
-          description: body.description ?? null,
+          description: body.description,
           status: body.status,
-          assignedToId: body.assignedToId ?? null,
-          responsibleId: body.responsibleId ?? user.id,
-          order: body.order ?? null,
-          deadline: body.deadline ?? null,
+          assignedToId: body.assignedToId,
+          responsibleId: body.responsibleId,
+          order: body.order,
+          deadline: body.deadline,
         };
         break;
   
@@ -78,12 +77,12 @@ class TaskService {
         data = {
           id: taskId,
           title: body.title,
-          description: body.description ?? null,
+          description: body.description,
           status: body.status,
-          assignedToId: body.assignedToId ?? null,
-          responsibleId: body.responsibleId ?? user.id,
-          order: body.order ?? null,
-          deadline: body.deadline ?? null,
+          assignedToId: body.assignedToId,
+          responsibleId: body.responsibleId,
+          order: body.order,
+          deadline: body.deadline,
         };
         break;
   
@@ -96,7 +95,7 @@ class TaskService {
         data = {
           id: taskId,
           status: body.status,
-          order: body.order ?? task.order,
+          order: body.order,
         };
         break;
   

@@ -3,6 +3,9 @@ import type { AccessTokenPayload } from "../utils/jwt";
 
 
 export default defineEventHandler((e)=> {
+
+  // для разработки, потом убрать
+  if (!e.path.startsWith('/api/')) return; 
  
   const path = e.path
 

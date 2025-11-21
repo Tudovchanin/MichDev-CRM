@@ -24,5 +24,5 @@ export type CreateCommentData = {
 }
 
 export type CommentUpdate  = {
-  text?: string;
+  text: string;
 }

@@ -5,8 +5,8 @@ import { prismaBoardRepository, prismaUserRepository } from "~/server/repositori
 import { validateBody } from "~/server/utils/validate";
 import { createBoardSchema } from "~/server/validations/boards";
 import { assertValidUser, assertRole } from "~/server/utils/auth";
-import type { UserBase } from "~/types/shared";
-
+import type { BoardBase, UserBase } from "~/types/shared";
+import type { BoardBaseNonNullManager } from "~/types/backend/boardRepo";
 
 const userService = new UserService(prismaUserRepository);
 const boardService = new BoardService(prismaBoardRepository);
@@ -21,7 +21,7 @@ export default defineEventHandler(async(e)=> {
   assertRole(currentUser, ['ADMIN', 'MANAGER'])
 
 
-  const body:{name:string, clientEmail:string, managerId:string | null } = await validateBody(createBoardSchema, e);
+  const body:{name:string, clientEmail:string, managerId?:string | null } = await validateBody(createBoardSchema, e);
 
   // Проверяем, есть ли зарегистрированный клиент с этим email
   const client = await userService.findUserByEmail(body.clientEmail);
@@ -36,7 +36,7 @@ export default defineEventHandler(async(e)=> {
 
   try {
 
-    const board = await boardService.createBoard(data);
+    const board:BoardBaseNonNullManager = await boardService.createBoard(data) as BoardBaseNonNullManager;
 
     return { board };
     

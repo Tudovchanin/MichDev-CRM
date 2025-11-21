@@ -7,7 +7,7 @@ import type {
   UserSearchConditions,
   UserWithPassword
 } from "~/types/backend/userRepo";
-import type { BoardRepository } from "~/types/backend/boardRepo";
+import type { BoardRepository, BoardBaseNonNullManager } from "~/types/backend/boardRepo";
 import type { RefreshTokenRepository } from "~/types/backend/tokenRepo";
 import type {
   TaskRepository,
@@ -301,6 +301,7 @@ export const prismaUserRepository: UserRepository = {
 };
 
 export const prismaBoardRepository: BoardRepository = {
+  
   async getBoardsForAdmin(archived?: boolean): Promise<BoardBase[]> {
     return prisma.board.findMany({
       where: {
@@ -491,6 +492,7 @@ export const prismaRefreshTokenRepository: RefreshTokenRepository = {
 };
 
 export const prismaTaskRepository: TaskRepository = {
+
   async findById(taskId: string): Promise<TaskBase | null> {
     return prisma.task.findUnique({
       where: { id: taskId },
@@ -530,6 +532,7 @@ export const prismaTaskRepository: TaskRepository = {
   },
 
   async updateTask(data: UpdateTaskData): Promise<TaskBase> {
+    
     try {
       return prisma.task.update({
         where: { id: data.id },
@@ -677,6 +680,7 @@ export const prismaTaskRepository: TaskRepository = {
 };
 
 export const prismaCommentRepository: CommentRepository = {
+
   async findById(id: string): Promise<CommentBase | null> {
     return prisma.comment.findUnique({
       where: { id },

@@ -33,7 +33,7 @@ export type CreateBoardData = {
   name: string;
   clientEmail: string;
   clientId?: string | null;
-  managerId?: string | null;
+  managerId: string;
 };
 
 export type UpdateBoardData = Partial<{

@@ -27,6 +27,7 @@ export default defineEventHandler(async(e)=> {
 
   const currentUser:UserBase = await userService.findByIdBasic(userId);
   assertValidUser(currentUser);
+  
   let boards: BoardBase[] = [];
 
   try {

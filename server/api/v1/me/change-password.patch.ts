@@ -45,7 +45,7 @@ export default defineEventHandler(async (e) => {
     );
 
     return {
-      message: "Password updated successfully"
+      message: "Пароль изменен"
     };
   } catch (error) {
     throw error;
