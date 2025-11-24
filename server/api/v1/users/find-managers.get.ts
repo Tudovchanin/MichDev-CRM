@@ -19,29 +19,29 @@ export default defineEventHandler(async (e) => {
     const currentUser = await userService.findByIdBasic(e.context.currentUserPayload.sub as string);
     // проверка текущего пользователя
     assertValidUser(currentUser);
-    assertRole(currentUser, ['ADMIN', 'MANAGER']);
-  
+    assertRole(currentUser, ['ADMIN']);
+
     const query = validateQuery(findClientQuerySchema, e);
     const { email, name, isBlocked } = query;
-  
+
     if (!email && !name && !isBlocked) {
       throw createError({ statusCode: 400, message: "Нужно передать хотя бы один параметр запроса для поиска" });
     }
-  
-const isBlockedBool = isBlocked === "true" ? true :
-isBlocked === "false" ? false :
-undefined;
 
-  
-    const users:UserBase[] = await userService.findUsersByCondition({
+    const isBlockedBool = isBlocked === "true" ? true :
+      isBlocked === "false" ? false :
+        undefined;
+
+
+    const users: UserBase[] = await userService.findUsersByCondition({
       email,
       name,
-      isBlocked:isBlockedBool,
-      role:'CLIENT'
+      isBlocked: isBlockedBool,
+      role: 'MANAGER'
     });
-  
+
     return { users };
-    
+
   } catch (error) {
     throw error;
   }

@@ -43,9 +43,7 @@ export default defineEventHandler(async (e) => {
     return { users };
 
   } catch (error) {
-
     throw error;
-
   }
 
 })
