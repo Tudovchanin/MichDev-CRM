@@ -168,12 +168,19 @@ class UserService {
     return userWithoutPassword;
   }
 
-  async findClientsByCondition(query: {
+  async findUsersByCondition(query: {
     email?: string;
     name?: string;
     isBlocked?: boolean;
+    role: Role | Role[];
   }): Promise<UserBase[]> {
-    const where: any = { role: 'CLIENT' };
+    const where: any = {};
+
+    if (Array.isArray(query.role)) {
+      where.role = { in: query.role }; // Prisma синтаксис для массива
+    } else {
+      where.role = query.role; // Одна роль
+    }
   
     if (query.email) where.email = query.email;
     if (query.name) where.name = { contains: query.name, mode: 'insensitive' };

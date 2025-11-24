@@ -33,10 +33,11 @@ isBlocked === "false" ? false :
 undefined;
 
   
-    const users:UserBase[] = await userService.findClientsByCondition({
+    const users:UserBase[] = await userService.findUsersByCondition({
       email,
       name,
-      isBlocked:isBlockedBool ,
+      isBlocked:isBlockedBool,
+      role:'CLIENT'
     });
   
     return { users };
