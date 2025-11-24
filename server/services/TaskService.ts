@@ -208,7 +208,7 @@ class TaskService {
           take,
           status,
           assignedToId: safeAssignedToId,
-          responsibleId: safeResponsibleId ?? user.id,
+          responsibleId: user.id,
           boardId
         });
 

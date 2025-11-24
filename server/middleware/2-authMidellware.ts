@@ -7,7 +7,7 @@ export default defineEventHandler((e)=> {
   // для разработки, потом убрать
   // if (!e.path.startsWith('/api/')) return; 
  
-  const path = e.path
+  const path = e.path;
 
   if (path.endsWith('login') || path.endsWith('register') || path.endsWith('refresh-token')) {
      console.log('Без токена доступа');
