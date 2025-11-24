@@ -268,9 +268,16 @@ GET /auth/activate?token=ACTIVATION_TOKEN
 
 ---
 
-### GET /users/find-client
+### GET /users/find-clients
+### GET /users/find-executors
+### GET /users/find-managers
+### GET /users/find-all
 
-**Описание:** Поиск клиентов
+**Описание:** Поиск клиентов, исполнителей, менеджеров, всех. 
+
+ - ADMIN может искать всех
+ - MANAGER только клиентов и исполнителей
+
 **Authorization:** ✅ требуется (ADMIN/MANAGER)
 
 **Запрос:**
