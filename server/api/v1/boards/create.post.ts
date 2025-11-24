@@ -36,6 +36,7 @@ export default defineEventHandler(async(e)=> {
 
   try {
 
+    // сервис запишет менеджера из тела запроса или автоматом запишет самого пользователя(доску создают только админы и менеджеры) в роли менеджера. Поэтому тип BoardBaseNonNullManager, так как при создании доски колонка managerId  не может быть пустой(пустой может если админ удалит менеджера)
     const board:BoardBaseNonNullManager = await boardService.createBoard(data) as BoardBaseNonNullManager;
 
     return { board };
