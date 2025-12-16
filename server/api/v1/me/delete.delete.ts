@@ -34,6 +34,8 @@ export default defineEventHandler(async(e)=> {
     assertValidUser(currentUser);
 
     await userService.deleteUser(e.context.currentUserPayload.sub);
+    clearAuthCookie(e);
+
 
     return {
       message: `Пользователь с ID ${e.context.currentUserPayload.sub} успешно удалён`

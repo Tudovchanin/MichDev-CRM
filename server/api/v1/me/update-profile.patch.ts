@@ -37,6 +37,7 @@ export default defineEventHandler(async (e) => {
 
     const currentUser: UserBase = await userService.findByIdBasic(payload.sub);
     assertValidUser(currentUser);
+    
 
     const updateData:UpdateUserData = body;
 
