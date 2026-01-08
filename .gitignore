@@ -5,6 +5,7 @@
 .nitro
 .cache
 dist
+txt
 pages/privacy-policy.vue
 
 # Node dependencies

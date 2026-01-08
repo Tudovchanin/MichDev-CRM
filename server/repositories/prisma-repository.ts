@@ -38,7 +38,48 @@ import type {
 } from "~/types/shared";
 
 
+// TODO: Вынести createError в слой сервиса, чтобы отвязать репозиторий от Nuxt 
+// async deleteById(id: string): Promise<UserBaseMinimal | null> {
+//   try {
+//     return await prisma.user.delete({
+//       where: { id },
+//       select: {
+//         id: true,
+//         name: true,
+//         email: true,
+//       },
+//     });
+//   } catch (err: any) {
+//     // P2025 — это код Prisma "Record to delete not found"
+//     if (err.code === "P2025") {
+//       return null; 
+//     }
+//     throw err; // Остальные ошибки (связь с БД и т.д.) пробрасываем
+//   }
+// }
+
+/*
+в сервисе 
+async deleteUser(id: string) {
+  const user = await this.userRepository.deleteById(id);
+  
+  if (!user) {
+    throw createError({
+      statusCode: 404,
+      message: "Пользователь не найден",
+    });
+  }
+  
+  return user; // Возвращаем удаленного юзера (id, name, email)
+}
+
+
+
+*/
+
+
 export const prismaUserRepository: UserRepository = {
+
   async findByIdWithCounts(id: string): Promise<UserResponseCounts | null> {
     const user = await prisma.user.findUnique({
       where: { id },
