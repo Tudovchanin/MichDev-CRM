@@ -1,4 +1,4 @@
-# HeroComputerCRM
+# MichDev CRM
 
 
 
@@ -11,8 +11,8 @@ API CRM для управления досками, задачами и увед
 Скопируйте и выполните команды в терминале:
 
 ```bash
-git clone https://github.com/Tudovchanin/HeroComputerCRM.git
-cd HeroComputerCRM
+git clone https://github.com/Tudovchanin/MichDev-CRM
+cd MichDev-CRM
 npm install
 cp -n .env.example .env
 npm run migrate:dev

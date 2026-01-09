@@ -1,4 +1,4 @@
-# HeroComputer CRM API Documentation
+# MichDev CRM API Documentation
 
 ## Общая информация
 
