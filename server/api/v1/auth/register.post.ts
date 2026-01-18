@@ -17,7 +17,7 @@ const refreshTokenService = new RefreshTokenService(prismaRefreshTokenRepository
 
 export default defineEventHandler(async(e)=> {
 
-  const body: CreateUserData = await validateBody(registerSchema, e);;
+  const body: CreateUserData = await validateBody(registerSchema, e);
 
 
   try {

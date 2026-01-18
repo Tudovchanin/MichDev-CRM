@@ -9,32 +9,41 @@ export interface IEmailService {
 
 class EmailService implements IEmailService {
   
-  transporter: nodemailer.Transporter;
- 
-  constructor() {
+  private transporter: nodemailer.Transporter | null = null;
+  private getTransporter() {
+    if (this.transporter) return this.transporter;
+
+    const config = useRuntimeConfig();
+
     this.transporter = nodemailer.createTransport({
-      host: useRuntimeConfig().smtpHost,
-      port: useRuntimeConfig().smtpPort,
+      host: config.smtpHost,
+      port: config.smtpPort,
       secure: true,
       auth: {
-        user: useRuntimeConfig().smtpUser,
-        pass: useRuntimeConfig().smtpPass,
+        user: config.smtpUser,
+        pass: config.smtpPass,
       },
     });
+
+    return this.transporter;
   }
 
   async sendActivateEmail(to: string, link: string) {
-    await this.transporter.sendMail({
-      from: useRuntimeConfig().smtpUser,
+
+    const config = useRuntimeConfig(); // Вызываем один раз для данных письма
+    const transporter = this.getTransporter();
+
+    await transporter.sendMail({
+      from: config.smtpUser,
       to,
       subject: "Account Activation on the Site (Site Name)",
       text: "Text message",
       html: `
-        <div>
-          <h1>Please click the link below to activate your account</h1>
-          <a href=${link}>${link}</a>
-        </div>
-      `,
+      <div style="font-family: sans-serif;">
+        <h1>Please click the link below to activate your account</h1>
+        <a href="${link}" style="color: #007bff; text-decoration: none;">Activate Account</a>
+      </div>
+    `,
       headers: {
         "Content-Language": "en-US"
       }
