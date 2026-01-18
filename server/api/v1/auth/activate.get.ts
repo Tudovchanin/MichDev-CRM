@@ -5,10 +5,11 @@ import { prismaUserRepository } from "~/server/repositories/prisma-repository";
 const emailService = new EmailService();
 const userService = new UserService(prismaUserRepository, emailService);
 
-const CLIENT_ACTIVATE_PAGE = useRuntimeConfig().activationRedirectURL;
-const CLIENT_ERROR_PAGE = useRuntimeConfig().activationErrorRedirectURL;
-
 export default defineEventHandler(async (e) => {
+  const config = useRuntimeConfig(e);
+  const CLIENT_ACTIVATE_PAGE = config.activationRedirectURL;
+  const CLIENT_ERROR_PAGE = config.activationErrorRedirectURL;
+  
   const query = getQuery(e);
   const token = query.token as string | undefined;
 

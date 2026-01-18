@@ -6,7 +6,6 @@ import type { UserBase, UserResponseCounts, UserBaseMinimal } from '~/types/shar
 import type { IEmailService } from "./EmailService";
 import { Role } from '~/types/shared';
 
-const ACTIVATION_LINK = useRuntimeConfig().activationLink;
 
 
 class UserService {
@@ -44,6 +43,8 @@ class UserService {
     const userId = newUser.id;
 
     if (this.emailService) {
+      const ACTIVATION_LINK = useRuntimeConfig().activationLink;
+
       try {
         const tokenActivateEmail = createActivateEmailToken({ userId });
         const activationLink = `${ACTIVATION_LINK}?token=${tokenActivateEmail}`;

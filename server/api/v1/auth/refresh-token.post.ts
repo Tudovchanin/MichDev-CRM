@@ -3,13 +3,14 @@ import RefreshTokenService from "~/server/services/RefreshTokenService";
 
 import { prismaUserRepository, prismaRefreshTokenRepository } from "~/server/repositories/prisma-repository";
 import { createAccessToken } from "#imports";
+import { clearAuthCookie } from "~/server/utils/cookies";
 
 import type { UserBase } from "~/types/shared";
 
 const userService = new UserService(prismaUserRepository)
 const refreshTokenService = new RefreshTokenService(prismaRefreshTokenRepository);
 
-import { clearAuthCookie } from "~/server/utils/cookies";
+
 
 export default defineEventHandler(async (e) => {
 
